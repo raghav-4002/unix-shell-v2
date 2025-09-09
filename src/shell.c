@@ -1,16 +1,44 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "io_handling/input.h"
+#include "io-handling/input.h"
 #include "lexer/lexer.h"
+#include "lexer/token.h"
 
 
 void
 run(char *line)
 {
     Token *tokens = tokenize(line);
-    // Token ast_root = parse(tokens);
-    // evaluate(ast_root);
+
+    /* For now, just print the tokens */
+    for (size_t i = 0; tokens[i].type != NIL; i++) {
+        switch (tokens[i].type) {
+            case LOGIC_AND:
+                printf("LOGIC_AND\n");
+                break;
+
+            case LOGIC_OR:
+                printf("LOGIC_OR\n");
+                break;
+
+            case SEMICOLON:
+                printf("SEMICOLON\n");
+                break;
+
+            case BG_OPERATOR:
+                printf("BG_OPERATOR\n");
+                break;
+
+            case PIPE:
+                printf("PIP\n");
+                break;
+
+            default:
+                printf("%s\n", tokens[i].arg);
+                break;
+        }
+    }
 }
 
 
