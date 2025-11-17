@@ -7,23 +7,29 @@
 #include "lexer_helper.h"
 
 
+static int add_arg(struct Lexer_obj *lexer_obj);
+static int add_token(struct Lexer_obj *lexer_obj, Token_type type);
+static int command(struct Lexer_obj *lexer_obj);
+static int scan_token(struct Lexer_obj *lexer_obj);
+
+
 /*
  * @brief : Adds literal value of argument into token
             of type `COMMAND`.
  * @param : A pointer to `struct Parameters`.
  * @return: `0` on success; `-1` on failure.
  */
-int
-add_arg(struct Parameters *parameters)
+static int
+add_arg(struct Lexer_obj *lexer_obj)
 {
-    char  *string    = parameters->source;
-    size_t start     = parameters->start;
-    size_t end       = parameters->current;
-    size_t cur_index = parameters->arr_size - 1;
+    char  *string    = lexer_obj->source;
+    size_t start     = lexer_obj->start;
+    size_t end       = lexer_obj->current;
+    size_t cur_index = lexer_obj->arr_size - 1;
 
-    parameters->tokens[cur_index].arg = create_substring(string, start, end);
+    lexer_obj->tokens[cur_index].arg = create_substring(string, start, end);
 
-    if (!parameters->tokens[cur_index].arg) return -1;
+    if (!lexer_obj->tokens[cur_index].arg) return -1;
 
     return 0;
 }
@@ -35,31 +41,31 @@ add_arg(struct Parameters *parameters)
             `Token_type` enum Member.
  * @return: `0` on success; `-1` on failure.
  */
-int
-add_token(struct Parameters *parameters, Token_type type)
+static int
+add_token(struct Lexer_obj *lexer_obj, Token_type type)
 {
-    Token *tokens = parameters->tokens;
+    Token *tokens = lexer_obj->tokens;
 
     /* Add space for one more token */
-    parameters->arr_size += 1;
-    size_t arr_size       = parameters->arr_size;
+    lexer_obj->arr_size += 1;
+    size_t arr_size       = lexer_obj->arr_size;
     size_t cur_index      = arr_size - 1;
 
     /* Resize array */
     tokens = realloc(tokens, arr_size * sizeof(*tokens));
 
     if (!tokens) {
-        parameters->arr_size -= 1;  /* reset array size */
+        lexer_obj->arr_size -= 1;  /* reset array size */
         return -1;
     }
 
     Token *cur_token = &tokens[cur_index];
     init_token(cur_token, type);
 
-    parameters->tokens = tokens;
+    lexer_obj->tokens = tokens;
 
     if (type == COMMAND) {
-        if (add_arg(parameters) == -1) return -1;
+        if (add_arg(lexer_obj) == -1) return -1;
     }
 
     return 0;
@@ -71,19 +77,19 @@ add_token(struct Parameters *parameters, Token_type type)
  * @param : A pointer to `struct Parameters`.
  * @return: `0` on success; `-1` on failure.
  */
-int
-command(struct Parameters *parameters)
+static int
+command(struct Lexer_obj *lexer_obj)
 {
     /* Move current ahead, until any of the recognised lexeme is not found */
-    while (!match(parameters, ' ') && !match(parameters, '\n')
-           && !match(parameters, '\t') && !match(parameters, '\0')
-           && !match(parameters, ';') && !match(parameters, '&')
-           && !match(parameters, '|')) {
+    while (!match(lexer_obj, ' ') && !match(lexer_obj, '\n')
+           && !match(lexer_obj, '\t') && !match(lexer_obj, '\0')
+           && !match(lexer_obj, ';') && !match(lexer_obj, '&')
+           && !match(lexer_obj, '|')) {
 
-        advance_current(parameters);
+        advance_current(lexer_obj);
     }
 
-    int err_return = add_token(parameters, COMMAND);
+    int err_return = add_token(lexer_obj, COMMAND);
 
     return err_return;
 }
@@ -94,17 +100,17 @@ command(struct Parameters *parameters)
  * @param : A pointer to `struct Parameters`.
  * @return: `0` on success; `-1` on failure
  */
-int
-scan_token(struct Parameters *parameters)
+static int
+scan_token(struct Lexer_obj *lexer_obj)
 {
-    char c = advance_current(parameters);
+    char c = advance_current(lexer_obj);
 
     int err_return = 0;
 
     switch (c) {
         /* Single character tokens */
         case ';':
-            err_return = add_token(parameters, SEMICOLON);
+            err_return = add_token(lexer_obj, SEMICOLON);
             break;
 
         case ' ': case '\n': case '\t':
@@ -112,28 +118,28 @@ scan_token(struct Parameters *parameters)
 
         /* Double/single character tokens */
         case '|':
-            if (match(parameters, '|')) {
-                advance_current(parameters);
-                err_return = add_token(parameters, LOGIC_OR);
+            if (match(lexer_obj, '|')) {
+                advance_current(lexer_obj);
+                err_return = add_token(lexer_obj, LOGIC_OR);
             }
             else {
-                err_return = add_token(parameters, PIPE);
+                err_return = add_token(lexer_obj, PIPE);
             }
             break;
 
         case '&':
-            if (match(parameters, '&')) {
-                advance_current(parameters);
-                err_return = add_token(parameters, LOGIC_AND);
+            if (match(lexer_obj, '&')) {
+                advance_current(lexer_obj);
+                err_return = add_token(lexer_obj, LOGIC_AND);
             }
             else {
-                err_return = add_token(parameters, BG_OPERATOR);
+                err_return = add_token(lexer_obj, BG_OPERATOR);
             }
             break;
 
         /* Command tokens */
         default:
-            err_return = command(parameters);
+            err_return = command(lexer_obj);
             break;
 
     }
@@ -155,7 +161,7 @@ tokenize(char *input)
 {
     /*
      * A pointer to structure `Parameters`
-     
+     *
      * Members of `struct Parameters`
 
      * `Token *tokens`  : a pointer to an array of tokens.
@@ -167,32 +173,32 @@ tokenize(char *input)
      * `size_t current` : an index pointing to the current character
                           being considered.
      */
-    struct Parameters *parameters = malloc(sizeof(*parameters));
+    struct Lexer_obj *lexer_obj = malloc(sizeof(*lexer_obj));
 
-    if (parameters == NULL) return NULL;
+    if (lexer_obj == NULL) return NULL;
 
-    init_parameters(parameters, input);
+    init_parameters(lexer_obj, input);
 
     int err_return = 0;
 
-    while (!current_is_at_end(parameters)) {
+    while (!current_is_at_end(lexer_obj)) {
         /* Move to the next lexeme */
-        parameters->start = parameters->current;
-        err_return        = scan_token(parameters);
+        lexer_obj->start = lexer_obj->current;
+        err_return        = scan_token(lexer_obj);
 
         if (err_return == -1) {
-            free_tokens_on_error(parameters);
+            free_tokens_on_error(lexer_obj);
             return NULL;
         }
     }
 
     /* Add `NIL` as last token */
-    err_return = add_token(parameters, NIL);
+    err_return = add_token(lexer_obj, NIL);
 
     if (err_return == -1) {
-        free_tokens_on_error(parameters);
+        free_tokens_on_error(lexer_obj);
         return NULL;
     }
 
-    return parameters->tokens;
+    return lexer_obj->tokens;
 }
