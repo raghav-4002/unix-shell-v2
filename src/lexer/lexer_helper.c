@@ -1,5 +1,7 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "lexer_helper.h"
 #include "utils.h"
@@ -17,10 +19,6 @@ lex_init_obj(struct Lexer_obj *lexer_obj, char *input)
 }
 
 
-/*
- * @brief : Tells whether `current` points at the end ('\0')
- * @return: `true`, if yes
- */
 bool
 lex_current_at_end(struct Lexer_obj *lexer_obj)
 {
@@ -33,28 +31,21 @@ lex_current_at_end(struct Lexer_obj *lexer_obj)
 }
 
 
-/* 
- * @brief : Advances `current`
- * @return: Character previous to `current`
- */
 char
 lex_advance_current(struct Lexer_obj *lexer_obj)
 {
-    lexer_obj->current += 1;
-
     size_t current = lexer_obj->current;
     char  *source  = lexer_obj->source;
 
+    assert(source[current] != '\0');
+
+    lexer_obj->current += 1;
     return source[current - 1];
 }
 
 
-/* 
- * Returns `true` if the next char to `current` is `expected`.
- * Else returns `false`.
- */
 bool
-lex_match(struct Lexer_obj *lexer_obj, char expected)
+lex_peek(struct Lexer_obj *lexer_obj, char expected)
 {
     char *source   = lexer_obj->source;
     size_t current = lexer_obj->current;
@@ -65,7 +56,6 @@ lex_match(struct Lexer_obj *lexer_obj, char expected)
 }
 
 
-/* Initializes a `token` with default values. */
 void
 lex_init_token(Token *token, Token_type type)
 {
@@ -74,12 +64,6 @@ lex_init_token(Token *token, Token_type type)
 }
 
 
-/*
- * @brief : Creates a substring from a given string
- * @param : Pointer to original string; starting and terminating index of
- *          substring
- * @return: A `malloc`d array of substring
- */
 char *
 create_substring(char *string, size_t start, size_t end)
 {
@@ -97,10 +81,6 @@ create_substring(char *string, size_t start, size_t end)
 }
 
 
-/*
- * @brief : Frees memory allocated to tokens if error occurs.
- * @param : A pointer to `struct Parameters`.
- */
 void
 destroy_lex_data(struct Lexer_obj *lexer_obj)
 {
@@ -109,4 +89,28 @@ destroy_lex_data(struct Lexer_obj *lexer_obj)
 
     free(lexer_obj);
     free_tokens(tokens, tokens_count);
+}
+
+
+int
+lex_expand_tok_array(struct Lexer_obj *lexer_obj)
+{
+    Token *tokens = lexer_obj->tokens;
+    Token *temp   = NULL;
+
+    /*
+        See this SO answer for realloc error handling:
+        https://stackoverflow.com/a/1986572/31078065
+     */
+    size_t new_arr_size   = lexer_obj->tok_count + 1;
+    temp = realloc(tokens, new_arr_size * sizeof(*tokens));
+
+    if (!temp) {
+        perror(NULL);
+        return -1;
+    }
+
+    tokens = temp;
+    lexer_obj->tok_count = new_arr_size;
+    return 0;
 }

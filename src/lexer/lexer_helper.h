@@ -22,8 +22,9 @@ struct Lexer_obj
 void lex_init_obj(struct Lexer_obj *lexer_obj, char *input);
 bool lex_current_at_end(struct Lexer_obj *lexer_obj);
 char lex_advance_current(struct Lexer_obj *lexer_obj);
-bool lex_match(struct Lexer_obj *lexer_obj, char expected);
+bool lex_peek(struct Lexer_obj *lexer_obj, char expected);
 void lex_init_token(Token *token, Token_type type);
+int lex_expand_tok_array(struct Lexer_obj *lexer_obj);
 char *create_substring(char *string, size_t start, size_t end);
 void destroy_lex_data(struct Lexer_obj *lexer_obj);
 

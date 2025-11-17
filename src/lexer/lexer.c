@@ -14,12 +14,6 @@ static int command(struct Lexer_obj *lexer_obj);
 static int scan_token(struct Lexer_obj *lexer_obj);
 
 
-/*
- * @brief : Adds literal value of argument into token
-            of type `COMMAND`.
- * @param : A pointer to `struct Parameters`.
- * @return: `0` on success; `-1` on failure.
- */
 static int
 add_arg(struct Lexer_obj *lexer_obj)
 {
@@ -36,34 +30,16 @@ add_arg(struct Lexer_obj *lexer_obj)
 }
 
 
-/*
- * @brief : Adds a token into `tokens` array.
- * @param : A pointer to `struct Parameters`.
-            `Token_type` enum Member.
- * @return: `0` on success; `-1` on failure.
- */
 static int
 add_token(struct Lexer_obj *lexer_obj, Token_type type)
 {
-    Token *tokens = lexer_obj->tokens;
+    if (lex_expand_tok_array(lexer_obj) == -1) return -1;
 
-    /* Add space for one more token */
-    lexer_obj->tok_count += 1;
-    size_t arr_size       = lexer_obj->tok_count;
-    size_t cur_index      = arr_size - 1;
-
-    /* Resize array */
-    tokens = realloc(tokens, arr_size * sizeof(*tokens));
-
-    if (!tokens) {
-        lexer_obj->tok_count -= 1;  /* reset array size */
-        return -1;
-    }
-
+    Token *tokens    = lexer_obj->tokens;
+    size_t cur_index = lexer_obj->tok_count - 1;
     Token *cur_token = &tokens[cur_index];
-    lex_init_token(cur_token, type);
 
-    lexer_obj->tokens = tokens;
+    lex_init_token(cur_token, type);
 
     if (type == COMMAND) {
         if (add_arg(lexer_obj) == -1) return -1;
@@ -73,19 +49,14 @@ add_token(struct Lexer_obj *lexer_obj, Token_type type)
 }
 
 
-/*
- * @brief : Tokenizes a lexeme of type `COMMAND`.
- * @param : A pointer to `struct Parameters`.
- * @return: `0` on success; `-1` on failure.
- */
 static int
 command(struct Lexer_obj *lexer_obj)
 {
     /* Move current ahead, until any of the recognised lexeme is not found */
-    while (!lex_match(lexer_obj, ' ') && !lex_match(lexer_obj, '\n')
-           && !lex_match(lexer_obj, '\t') && !lex_match(lexer_obj, '\0')
-           && !lex_match(lexer_obj, ';') && !lex_match(lexer_obj, '&')
-           && !lex_match(lexer_obj, '|')) {
+    while (!lex_peek(lexer_obj, ' ') && !lex_peek(lexer_obj, '\n')
+           && !lex_peek(lexer_obj, '\t') && !lex_peek(lexer_obj, '\0')
+           && !lex_peek(lexer_obj, ';') && !lex_peek(lexer_obj, '&')
+           && !lex_peek(lexer_obj, '|')) {
 
         lex_advance_current(lexer_obj);
     }
@@ -96,30 +67,46 @@ command(struct Lexer_obj *lexer_obj)
 }
 
 
-/*
- * @brief : Recognises the current lexeme.
- * @param : A pointer to `struct Parameters`.
- * @return: `0` on success; `-1` on failure
- */
 static int
 scan_token(struct Lexer_obj *lexer_obj)
 {
     char c = lex_advance_current(lexer_obj);
-
     int err_return = 0;
 
     switch (c) {
-        /* Single character tokens */
+        /* === Single character tokens === */
+
+        case ' ': case '\t':
+            /* Skip whitespaces */
+            break;
+
         case ';':
             err_return = add_token(lexer_obj, SEMICOLON);
             break;
 
-        case ' ': case '\n': case '\t':
+        case '(':
+            err_return = add_token(lexer_obj, LEFT_PAREN);
             break;
 
-        /* Double/single character tokens */
+        case ')':
+            err_return = add_token(lexer_obj, RIGHT_PAREN);
+            break;
+
+        /* There is no `<<` token for the shell */
+        case '<':
+            err_return = add_token(lexer_obj, LEFT_REDIR);
+            break;
+
+        /* === Double/single character tokens === */
+        /*
+            For each of these cases, peek the next character
+            in the string. If the current and the next character
+            are the same, then it's a double character token. Else
+            single character token.
+        */
+
         case '|':
-            if (lex_match(lexer_obj, '|')) {
+            if (lex_peek(lexer_obj, '|') == true) {
                 lex_advance_current(lexer_obj);
                 err_return = add_token(lexer_obj, LOGIC_OR);
             }
@@ -129,12 +116,22 @@ scan_token(struct Lexer_obj *lexer_obj)
             break;
 
         case '&':
-            if (lex_match(lexer_obj, '&')) {
+            if (lex_peek(lexer_obj, '&')) {
                 lex_advance_current(lexer_obj);
                 err_return = add_token(lexer_obj, LOGIC_AND);
             }
             else {
                 err_return = add_token(lexer_obj, BG_OPERATOR);
+            }
+            break;
+
+        case '>':
+            if (lex_peek(lexer_obj, '>')) {
+                lex_advance_current(lexer_obj);
+                err_return = add_token(lexer_obj, DOUBLE_RIGHT_REDIR);
+            }
+            else {
+                err_return = add_token(lexer_obj, RIGHT_REDIR);
             }
             break;
 
@@ -145,9 +142,7 @@ scan_token(struct Lexer_obj *lexer_obj)
 
     }
 
-    if (err_return == -1) return -1;
-
-    return 0;
+   return err_return;
 }
 
 
