@@ -3,7 +3,7 @@
 
 
 #include <stdlib.h>
-#include "lexer/token.h"
+#include "token.h"
 
 
 void free_tokens(Token *tokens, size_t tokens_count);

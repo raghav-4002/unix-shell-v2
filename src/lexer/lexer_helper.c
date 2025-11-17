@@ -2,18 +2,18 @@
 #include <string.h>
 
 #include "lexer_helper.h"
-#include "../utils.h"
+#include "utils.h"
 
 
 void
-init_parameters(struct Parameters *parameters, char *input)
+lex_init_obj(struct Lexer_obj *lexer_obj, char *input)
 {
-    parameters->tokens    = NULL;
-    parameters->arr_size  = 0;
+    lexer_obj->tokens    = NULL;
+    lexer_obj->tok_count = 0;
 
-    parameters->source    = input;
-    parameters->start     = 0;
-    parameters->current   = 0;
+    lexer_obj->source    = input;
+    lexer_obj->start     = 0;
+    lexer_obj->current   = 0;
 }
 
 
@@ -22,10 +22,10 @@ init_parameters(struct Parameters *parameters, char *input)
  * @return: `true`, if yes
  */
 bool
-current_is_at_end(struct Parameters *parameters)
+lex_current_at_end(struct Lexer_obj *lexer_obj)
 {
-    char *source   = parameters->source;
-    size_t current = parameters->current;
+    char *source   = lexer_obj->source;
+    size_t current = lexer_obj->current;
 
     if (source[current] == '\0') return true;
 
@@ -38,12 +38,12 @@ current_is_at_end(struct Parameters *parameters)
  * @return: Character previous to `current`
  */
 char
-advance_current(struct Parameters *parameters)
+lex_advance_current(struct Lexer_obj *lexer_obj)
 {
-    parameters->current += 1;
+    lexer_obj->current += 1;
 
-    size_t current = parameters->current;
-    char  *source  = parameters->source;
+    size_t current = lexer_obj->current;
+    char  *source  = lexer_obj->source;
 
     return source[current - 1];
 }
@@ -54,10 +54,10 @@ advance_current(struct Parameters *parameters)
  * Else returns `false`.
  */
 bool
-match(struct Parameters *parameters, char expected)
+lex_match(struct Lexer_obj *lexer_obj, char expected)
 {
-    char *source   = parameters->source;
-    size_t current = parameters->current;
+    char *source   = lexer_obj->source;
+    size_t current = lexer_obj->current;
 
     if (source[current] == expected) return true;
 
@@ -67,11 +67,10 @@ match(struct Parameters *parameters, char expected)
 
 /* Initializes a `token` with default values. */
 void
-init_token(Token *token, Token_type type)
+lex_init_token(Token *token, Token_type type)
 {
     token->type          = type;
     token->arg           = NULL;
-    token->return_status = UNDEFINED;
 }
 
 
@@ -103,10 +102,11 @@ create_substring(char *string, size_t start, size_t end)
  * @param : A pointer to `struct Parameters`.
  */
 void
-free_tokens_on_error(struct Parameters *parameters)
+destroy_lex_data(struct Lexer_obj *lexer_obj)
 {
-    Token *tokens       = parameters->tokens;
-    size_t tokens_count = parameters->arr_size - 1;
+    Token *tokens       = lexer_obj->tokens;
+    size_t tokens_count = lexer_obj->tok_count - 1;
 
+    free(lexer_obj);
     free_tokens(tokens, tokens_count);
 }
