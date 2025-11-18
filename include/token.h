@@ -4,7 +4,7 @@
 
 typedef enum Token_type
 {
-    COMMAND, ARG,            /* Command and its arguments */
+    CMD, ARG,                /* Command and its arguments */
 
     PIPE, BG_OPERATOR,       /* `|` and `&` */
     LOGIC_AND, LOGIC_OR,     /* `||` and `&&` */

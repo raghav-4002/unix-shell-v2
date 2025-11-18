@@ -10,7 +10,7 @@
 
 static int add_arg(struct Lexer_obj *lexer_obj);
 static int add_token(struct Lexer_obj *lexer_obj, Token_type type);
-static int command(struct Lexer_obj *lexer_obj);
+static int handle_command(struct Lexer_obj *lexer_obj, Token_type type);
 static int scan_token(struct Lexer_obj *lexer_obj);
 
 
@@ -41,7 +41,7 @@ add_token(struct Lexer_obj *lexer_obj, Token_type type)
 
     lex_init_token(cur_token, type);
 
-    if (type == COMMAND) {
+    if (type == CMD) {
         if (add_arg(lexer_obj) == -1) return -1;
     }
 
@@ -50,7 +50,7 @@ add_token(struct Lexer_obj *lexer_obj, Token_type type)
 
 
 static int
-command(struct Lexer_obj *lexer_obj)
+handle_command(struct Lexer_obj *lexer_obj, Token_type type)
 {
     /* Move current ahead, until any of the recognised lexeme is not found */
     while (!lex_peek(lexer_obj, ' ') && !lex_peek(lexer_obj, '\n')
@@ -61,7 +61,7 @@ command(struct Lexer_obj *lexer_obj)
         lex_advance_current(lexer_obj);
     }
 
-    int err_return = add_token(lexer_obj, COMMAND);
+    int err_return = add_token(lexer_obj, type);
 
     return err_return;
 }
@@ -71,6 +71,7 @@ static int
 scan_token(struct Lexer_obj *lexer_obj)
 {
     char c = lex_advance_current(lexer_obj);
+    size_t tok_count;   /* Used inside the default case */
     int err_return = 0;
 
     switch (c) {
@@ -135,9 +136,25 @@ scan_token(struct Lexer_obj *lexer_obj)
             }
             break;
 
-        /* Command tokens */
+        /* === Command tokens === */
+
         default:
-            err_return = command(lexer_obj);
+            tok_count                     = lexer_obj->tok_count;
+            Token_type type_of_last_token = lexer_obj->tokens[tok_count - 1].type;
+
+            /*
+                If the type of last token is either `CMD` or `ARG`, then the
+                current lexeme type is `ARG`. Otherwise, its `CMD`.
+                If there are 0 tokens in the array, then also current
+                lexeme type is `CMD`
+            */
+            if (tok_count > 0 
+                && (type_of_last_token == CMD || type_of_last_token == ARG)) {
+                err_return = handle_command(lexer_obj, ARG);
+            }
+            else {
+                err_return = handle_command(lexer_obj, CMD);
+            }
             break;
 
     }
