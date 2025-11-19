@@ -17,16 +17,16 @@ static int scan_token(struct Lexer_obj *lexer_obj);
 static int
 add_arg(struct Lexer_obj *lexer_obj)
 {
-    char  *string    = lexer_obj->source;
-    size_t start     = lexer_obj->start;
-    size_t end       = lexer_obj->current;
-    size_t cur_index = lexer_obj->tok_count - 1;
+    const char  *string = lexer_obj->source;
+    size_t start        = lexer_obj->start;
+    size_t end          = lexer_obj->current;
+    size_t cur_index    = lexer_obj->tok_count - 1;
 
     char *substring = create_substring(string, start, end);
 
     if (substring == NULL) return -1;
 
-    lexer_obj->tokens[cur_index].arg = substring;
+    lexer_obj->tokens[cur_index].lexeme = substring;
     return 0;
 }
 
@@ -34,6 +34,9 @@ add_arg(struct Lexer_obj *lexer_obj)
 static int
 add_token(struct Lexer_obj *lexer_obj, Token_type type)
 {
+    /* If already at max allowed tokens count */
+    if (lexer_obj->tok_count == MAX_TOK_COUNT) return -1;
+
     if (lex_expand_tok_array(lexer_obj) == -1) return -1;
 
     Token *tokens    = lexer_obj->tokens;
@@ -61,6 +64,14 @@ handle_command(struct Lexer_obj *lexer_obj, Token_type type)
             && !lex_peek(lexer_obj, '(') && !lex_peek(lexer_obj, ')')) {
 
         lex_advance_current(lexer_obj);
+
+        const size_t curr_lexeme_size = 
+            find_curr_lexeme_size(lexer_obj->start, lexer_obj->current);
+
+        if (curr_lexeme_size > MAX_LEXEME_SIZE) {
+            fprintf(stderr, "Maximum allowed lexeme size exceeded\n");
+            return -1;
+        }
     }
 
     int err_return = add_token(lexer_obj, type);
@@ -71,7 +82,7 @@ handle_command(struct Lexer_obj *lexer_obj, Token_type type)
 static int
 scan_token(struct Lexer_obj *lexer_obj)
 {
-    char c = lex_advance_current(lexer_obj);
+    const char c = lex_advance_current(lexer_obj);
     size_t tok_count;   /* Used inside the default case */
     int err_return = 0;
 
@@ -165,7 +176,7 @@ scan_token(struct Lexer_obj *lexer_obj)
 
 
 Token *
-tokenize(char *input)
+tokenize(const char *input)
 {
     /* Create lexer object */
     struct Lexer_obj *lexer_obj = malloc(sizeof(*lexer_obj));

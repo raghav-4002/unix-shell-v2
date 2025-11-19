@@ -2,6 +2,10 @@
 #define TOKENS_H_
 
 
+#define MAX_LEXEME_SIZE 128
+#define MAX_TOK_COUNT   128
+
+
 typedef enum Token_type
 {
     CMD, ARG,                /* Command and its arguments */
@@ -23,7 +27,7 @@ typedef enum Token_type
 typedef struct Token
 {
     Token_type type;
-    char *arg;
+    char *lexeme;
 } Token;
 
 

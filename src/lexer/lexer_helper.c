@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,7 +9,7 @@
 
 
 void
-lex_init_obj(struct Lexer_obj *lexer_obj, char *input)
+lex_init_obj(struct Lexer_obj *lexer_obj, const char *input)
 {
     lexer_obj->tokens    = NULL;
     lexer_obj->tok_count = 0;
@@ -18,12 +19,11 @@ lex_init_obj(struct Lexer_obj *lexer_obj, char *input)
     lexer_obj->current   = 0;
 }
 
-
 bool
 lex_current_at_end(struct Lexer_obj *lexer_obj)
 {
-    char *source   = lexer_obj->source;
-    size_t current = lexer_obj->current;
+    const char *source = lexer_obj->source;
+    size_t current     = lexer_obj->current;
 
     if (source[current] == '\0') return true;
 
@@ -34,8 +34,8 @@ lex_current_at_end(struct Lexer_obj *lexer_obj)
 char
 lex_advance_current(struct Lexer_obj *lexer_obj)
 {
-    size_t current = lexer_obj->current;
-    char  *source  = lexer_obj->source;
+    size_t current     = lexer_obj->current;
+    const char *source = lexer_obj->source;
 
     assert(source[current] != '\0');
 
@@ -45,10 +45,10 @@ lex_advance_current(struct Lexer_obj *lexer_obj)
 
 
 bool
-lex_peek(struct Lexer_obj *lexer_obj, char expected)
+lex_peek(struct Lexer_obj *lexer_obj, const char expected)
 {
-    char *source   = lexer_obj->source;
-    size_t current = lexer_obj->current;
+    const char *source = lexer_obj->source;
+    size_t current     = lexer_obj->current;
 
     if (source[current] == expected) return true;
 
@@ -59,13 +59,13 @@ lex_peek(struct Lexer_obj *lexer_obj, char expected)
 void
 lex_init_token(Token *token, Token_type type)
 {
-    token->type          = type;
-    token->arg           = NULL;
+    token->type   = type;
+    token->lexeme = NULL;
 }
 
 
 char *
-create_substring(char *string, size_t start, size_t end)
+create_substring(const char *string, size_t start, size_t end)
 {
     /* Add `1` for null-byte */
     size_t buf_size = (end - start) + 1;
@@ -114,4 +114,11 @@ lex_expand_tok_array(struct Lexer_obj *lexer_obj)
     lexer_obj->tokens    = temp;
     lexer_obj->tok_count = new_arr_size;
     return 0;
+}
+
+
+size_t
+find_curr_lexeme_size(size_t start, size_t current)
+{
+    return current - start;
 }
