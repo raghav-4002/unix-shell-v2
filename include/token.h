@@ -8,7 +8,8 @@
 
 typedef enum Token_type
 {
-    CMD, ARG,                /* Command and its arguments */
+    NAME,                   /* Generic type for commands,
+                               arguments and files */
 
     PIPE, BG_OPERATOR,       /* `|` and `&` */
     LOGIC_AND, LOGIC_OR,     /* `||` and `&&` */
