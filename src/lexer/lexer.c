@@ -10,34 +10,59 @@
 
 static int add_arg(struct Lexer_obj *lexer_obj);
 static int add_token(struct Lexer_obj *lexer_obj, Token_type type);
-static int handle_command(struct Lexer_obj *lexer_obj, Token_type type);
+static int handle_command(struct Lexer_obj *lexer_obj);
 static int scan_token(struct Lexer_obj *lexer_obj);
 
 
+/*
+    @brief : Adds literal lexeme in the token for token of 
+    type `NAME` which represents the name of command, file
+    or argument
+
+    @param : Pointer to `struct Lexer_obj`
+
+    @return: -1 on failure; 0 on success
+*/
 static int
 add_arg(struct Lexer_obj *lexer_obj)
 {
-    const char  *string = lexer_obj->source;
-    size_t start        = lexer_obj->start;
-    size_t end          = lexer_obj->current;
-    size_t cur_index    = lexer_obj->tok_count - 1;
+    const char *string = lexer_obj->source;
+    size_t start       = lexer_obj->start;
+    size_t end         = lexer_obj->current;
+    size_t cur_index   = lexer_obj->tok_count - 1;
 
     char *substring = create_substring(string, start, end);
 
-    if (substring == NULL) return -1;
+    if (substring == NULL) {
+        return -1;
+    }
 
     lexer_obj->tokens[cur_index].lexeme = substring;
     return 0;
 }
 
 
+/*
+    @brief : Adds another token into the `tokens` array of
+    `Lexer_obj`
+
+    @param : Pointer to `struct Lexer_obj` and a `Token_type`
+    variable `type` which represents the type of token to add
+
+    @return: -1 on failure; 0 on success
+*/
 static int
 add_token(struct Lexer_obj *lexer_obj, Token_type type)
 {
-    /* If already at max allowed tokens count */
-    if (lexer_obj->tok_count == MAX_TOK_COUNT) return -1;
+    if (lexer_obj->tok_count == MAX_TOK_COUNT) {
+        /* If already at max allowed tokens count */
+        return -1;
+    }
 
-    if (lex_expand_tok_array(lexer_obj) == -1) return -1;
+    /* Expand the tokens array to add space for new token */
+    if (lex_expand_tok_array(lexer_obj) == -1) {
+        return -1;
+    }
 
     Token *tokens    = lexer_obj->tokens;
     size_t cur_index = lexer_obj->tok_count - 1;
@@ -46,6 +71,7 @@ add_token(struct Lexer_obj *lexer_obj, Token_type type)
     lex_init_token(cur_token, type);
 
     if (type == NAME) {
+        /* Add lexeme value for token of type `NAME` */
         if (add_arg(lexer_obj) == -1) return -1;
     }
 
@@ -53,8 +79,16 @@ add_token(struct Lexer_obj *lexer_obj, Token_type type)
 }
 
 
+/*
+    @brief : Tokenize a lexeme of type NAME which represents either a command,
+    its arguments or a filename
+
+    @param : Pointer to `struct Lexer_obj`
+
+    @return: -1 on failure; 0 on success
+*/
 static int
-handle_command(struct Lexer_obj *lexer_obj, Token_type type)
+handle_command(struct Lexer_obj *lexer_obj)
 {
     /* Move current ahead, until any of the recognised lexeme is not found */
     while (!lex_peek(lexer_obj, ' ') && !lex_peek(lexer_obj, '\t')
@@ -74,20 +108,26 @@ handle_command(struct Lexer_obj *lexer_obj, Token_type type)
         }
     }
 
-    int err_return = add_token(lexer_obj, type);
+    int err_return = add_token(lexer_obj, NAME);
     return err_return;
 }
 
 
+/*
+    @brief : Identifies the current lexeme type
+    @param : Pointer to `struct Lexer_obj`
+    @return: 0 on success; -1 on failure
+*/
 static int
 scan_token(struct Lexer_obj *lexer_obj)
 {
+    /* Get the first character of current lexeme */
     const char c = lex_advance_current(lexer_obj);
-    size_t tok_count;   /* Used inside the default case */
+
     int err_return = 0;
 
     switch (c) {
-        /* === Single character tokens === */
+        /* ==== Single character tokens ==== */
 
         case ' ': case '\t':
             /* Skip whitespaces */
@@ -105,7 +145,7 @@ scan_token(struct Lexer_obj *lexer_obj)
             err_return = add_token(lexer_obj, RIGHT_PAREN);
             break;
 
-        /* There is no `<<` token for the shell */
+        /* There is no `<<` token defined for the shell */
         case '<':
             err_return = add_token(lexer_obj, LEFT_REDIR);
             break;
@@ -148,46 +188,31 @@ scan_token(struct Lexer_obj *lexer_obj)
             }
             break;
 
-        /* === Command tokens === */
+        /* ==== Command tokens ==== */
 
         default:
-            // // TODO: Fix this damn if-else clause
-            // tok_count = lexer_obj->tok_count;
-            // Token_type type_of_last_token;
-            //
-            // if (tok_count > 0) {
-            //     type_of_last_token = lexer_obj->tokens[tok_count - 1].type;
-            // }
-            //
-            // /*
-            //     If the type of last token is either `CMD` or `ARG`, then the
-            //     current lexeme type is `ARG`. Otherwise, its `CMD`.
-            //     If there are 0 tokens in the array, then also current
-            //     lexeme type is `CMD`
-            // */
-            // if (tok_count > 0 &&
-            //     (type_of_last_token == CMD || type_of_last_token == ARG)) {
-            //     err_return = handle_command(lexer_obj, ARG);
-            // }
-            // else {
-            //     err_return = handle_command(lexer_obj, CMD);
-            // }
-            // break;
-
-            err_return = handle_command(lexer_obj, NAME);
+            err_return = handle_command(lexer_obj);
             break;
     }
 
-   return err_return;
+   return err_return; /* -1 on failure; 0 on success */
 }
 
 
+/*
+    @brief: Main tokenizer interface. Tokenizes a given Null-terminated string into
+    lexical tokens.
+
+    @param: A null-terminated character string.
+
+    @return: A pointer to an array of type `Token`. The caller is responsible for freeing
+    the array. `NULL` on error
+*/
 Token *
 tokenize(const char *input)
 {
     /* Create lexer object */
     struct Lexer_obj *lexer_obj = malloc(sizeof(*lexer_obj));
-
     if (lexer_obj == NULL) {
         perror(NULL);
         return NULL;
@@ -196,7 +221,8 @@ tokenize(const char *input)
     lex_init_obj(lexer_obj, input); /* Initialize lexer object */
     int err_return = 0;
 
-    /* Main tokenizing loop */
+    /* ==== Main tokenizer loop ==== */
+
     while (!lex_current_at_end(lexer_obj)) {
         /* Move to the next lexeme */
         lexer_obj->start = lexer_obj->current;
@@ -210,12 +236,13 @@ tokenize(const char *input)
 
     /* Add `NIL` as last token */
     err_return = add_token(lexer_obj, NIL);
-
     if (err_return == -1) {
         destroy_lex_data(lexer_obj);
         return NULL;
     }
 
+    /* Only free the unnecessary lexer data like
+       current and start position.*/
     Token *tokens = lexer_obj->tokens;
     free(lexer_obj);
 
