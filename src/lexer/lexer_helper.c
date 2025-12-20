@@ -8,15 +8,22 @@
 #include "utils.h"
 
 
-void
-lex_init_obj(struct Lexer_obj *lexer_obj, const char *input)
+struct Lexer_obj *
+lex_init_obj(const char *input)
 {
+    struct Lexer_obj *lexer_obj = malloc(sizeof(*lexer_obj));
+    if (lexer_obj == NULL) {
+        perror(NULL);
+        return NULL;
+    }
+
     lexer_obj->tokens    = NULL;
     lexer_obj->tok_count = 0;
-
     lexer_obj->source    = input;
     lexer_obj->start     = 0;
     lexer_obj->current   = 0;
+
+    return lexer_obj;
 }
 
 

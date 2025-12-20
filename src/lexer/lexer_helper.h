@@ -18,7 +18,7 @@ struct Lexer_obj
     size_t      current;   /* current char of string being considered */
 };
 
-void lex_init_obj(struct Lexer_obj *lexer_obj, const char *input);
+struct Lexer_obj *lex_init_obj(const char *input);
 bool lex_current_at_end(struct Lexer_obj *lexer_obj);
 char lex_advance_current(struct Lexer_obj *lexer_obj);
 bool lex_peek(struct Lexer_obj *lexer_obj, const char expected);

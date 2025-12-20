@@ -204,14 +204,11 @@ scan_token(struct Lexer_obj *lexer_obj)
 Token *
 tokenize(const char *input)
 {
-    /* Create lexer object */
-    struct Lexer_obj *lexer_obj = malloc(sizeof(*lexer_obj));
+    struct Lexer_obj *lexer_obj = lex_init_obj(input);
     if (lexer_obj == NULL) {
-        perror(NULL);
         return NULL;
     }
 
-    lex_init_obj(lexer_obj, input); /* Initialize lexer object */
     int err_return = 0;
 
     /* ==== Main tokenizer loop ==== */
