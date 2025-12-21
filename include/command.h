@@ -16,12 +16,14 @@ typedef char** Command;
 typedef struct Cmd_table
 {
     Command *command;  /* to store the available commands */
-    size_t count;      /* total commands in the table */
-    size_t capacity;   /* capacity of table */
+    int count;      /* total commands in the table */
+    int capacity;   /* capacity of table */
 } Cmd_table;
 
 
 Cmd_table *init_cmd_table(void);
+int write_command(Cmd_table *cmd_table, const Command command);
+void destroy_cmd_table(Cmd_table *cmd_table);
 
 
 #endif // COMMAND_H_
