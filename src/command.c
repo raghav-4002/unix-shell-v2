@@ -39,17 +39,16 @@ destroy_cmd_table(Cmd_table *cmd_table)
     }
 
     free(cmd_table->command);
-    cmd_table->capacity = 0;
-    cmd_table->count    = 0;
-    cmd_table->command  = NULL;
+    free(cmd_table);
 }
 
 
 /* Inserts a command into the command table. Returns the 
-   index of the added command. */
+   index of the added command on success. -1 on failure */
 int
 write_command(Cmd_table *cmd_table, const Command command)
 {
+    /* Increase table size if capacity is not enough */
     if (cmd_table->capacity <= cmd_table->count) {
         cmd_table->capacity = cmd_table->capacity == 0 
                             ? 4 : cmd_table->capacity + 4;
@@ -64,6 +63,7 @@ write_command(Cmd_table *cmd_table, const Command command)
         cmd_table->command = temp;
     }
 
+    /* Write command, increment count and return index */
     cmd_table->command[cmd_table->count] = command;
     cmd_table->count += 1;
     return cmd_table->count - 1;
