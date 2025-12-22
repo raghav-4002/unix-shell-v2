@@ -2,29 +2,17 @@
 #define COMMAND_H_
 
 
-#include <stddef.h>
-
-
-/*
-    `Cmd_table` stores commands in a linear fashion.
-    Each command is a `char**`, represented like {"ls", "-al", NULL}.
-    Query the command table by index to get the command.
-*/
-
-typedef char** Command;
-
-typedef struct Cmd_table
+typedef struct Command
 {
-    Command *command;  /* to store the available commands */
-    int count;      /* total commands in the table */
-    int capacity;   /* capacity of table */
-} Cmd_table;
+    char **argv;     /* something like {"ls", "-al", NULL} */
+    int    argc;     /* argument count including `NULL` */
+    int    capacity; /* Capacity of argv array */
+} Command;
 
 
-Cmd_table *init_cmd_table(void);
-int write_command(Cmd_table *cmd_table, const Command command);
-void destroy_cmd_table(Cmd_table *cmd_table);
-void destroy_command(Command command);
+Command *init_cmd_obj(void);
+void destroy_cmd_obj(Command *command);
+void add_arg_to_cmd_obj(Command *command, char *arg);
 
 
 #endif // COMMAND_H_
