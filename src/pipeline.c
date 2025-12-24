@@ -8,28 +8,28 @@
 Pipeline *
 get_pipeline_obj(void)
 {
-    Pipeline *pipeline = malloc(sizeof(*pipeline));
-    if (pipeline == NULL) {
+    Pipeline *pipeline_obj = malloc(sizeof(*pipeline_obj));
+    if (pipeline_obj == NULL) {
         perror("Initializing pipeline object");
         return NULL;
     }
 
-    pipeline->command  = NULL;
-    pipeline->count    = 0;
-    pipeline->capacity = 0;
-    return pipeline;
+    pipeline_obj->command  = NULL;
+    pipeline_obj->count    = 0;
+    pipeline_obj->capacity = 0;
+    return pipeline_obj;
 }
 
 
 void
-destroy_pipeline_obj(Pipeline *pipeline)
+destroy_pipeline_obj(Pipeline *pipeline_obj)
 {
-    for (int i = 0; i < pipeline->count; i++) {
+    for (int i = 0; i < pipeline_obj->count; i++) {
         /* Destroy each command in pipeline */
-        destroy_cmd_obj(pipeline->command[i]);
+        destroy_cmd_obj(pipeline_obj->command[i]);
     }
 
-    free(pipeline);
+    free(pipeline_obj);
 }
 
 

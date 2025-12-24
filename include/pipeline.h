@@ -27,8 +27,8 @@ typedef struct Pipeline_table
 
 
 Pipeline *get_pipeline_obj(void);
-void destroy_pipeline_obj(Pipeline *pipeline);
-int add_cmd_to_pipeline(Pipeline *pipeline, Command *command);
+void destroy_pipeline_obj(Pipeline *pipeline_obj);
+int add_cmd_to_pipeline(Pipeline *pipeline_obj, Command *command_obj);
 
 
 #endif // PIPELINE_H_
