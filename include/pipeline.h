@@ -6,14 +6,14 @@
 
 /*
    A pipeline is an array of `Command` where
-   each `Command` is a member of the pipeline. 
+   each `Command` is a member of the pipeline.
    `ls -al | grep` => `{{"ls", "-al", NULL}, {"grep", NULL}}`
 */
 typedef struct Pipeline
 {
-    Command *command;
-    int      count;
-    int      capacity;
+    Command **command;
+    int       count;
+    int       capacity;
 } Pipeline;
 
 
@@ -24,6 +24,11 @@ typedef struct Pipeline_table
     int       count;
     int       capacity;
 } Pipeline_table;
+
+
+Pipeline *get_pipeline_obj(void);
+void destroy_pipeline_obj(Pipeline *pipeline);
+int add_cmd_to_pipeline(Pipeline *pipeline, Command *command);
 
 
 #endif // PIPELINE_H_
