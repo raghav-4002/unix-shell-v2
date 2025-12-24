@@ -10,7 +10,7 @@ get_pipeline_obj(void)
 {
     Pipeline *pipeline_obj = malloc(sizeof(*pipeline_obj));
     if (pipeline_obj == NULL) {
-        perror("Initializing pipeline object");
+        perror("Pipeline object initialization");
         return NULL;
     }
 
@@ -53,7 +53,60 @@ add_cmd_to_pipeline(Pipeline *pipeline_obj, Command *command_obj)
 
     pipeline_obj->command[pipeline_obj->count] = command_obj;
     pipeline_obj->count += 1;
-    return 0;
+    return (pipeline_obj->count - 1);
+
+    #undef INCR_SIZE
+}
+
+
+Pipeline_table *
+get_pipeline_table(void)
+{
+    Pipeline_table *pipeline_table = malloc(sizeof(*pipeline_table));
+    if (pipeline_table == NULL) {
+        perror("Pipeline table initialization");
+        return NULL;
+    }
+
+    pipeline_table->pipeline = NULL;
+    pipeline_table->count    = 0;
+    pipeline_table->capacity = 0;
+    return pipeline_table;
+}
+
+
+void
+destroy_pipeline_table(Pipeline_table *pipeline_table)
+{
+    for (int i = 0; i < pipeline_table->count; i++) {
+        destroy_pipeline_obj(pipeline_table->pipeline[i]);
+    }
+
+    free(pipeline_table);
+}
+
+
+int
+add_pipeline_to_table(Pipeline_table *pipeline_table, Pipeline *pipeline_obj)
+{
+    #define INCR_SIZE 2
+
+    if (pipeline_table->capacity <= pipeline_table->count) {
+        pipeline_table->capacity += INCR_SIZE;
+
+        Pipeline **pipeline = realloc(pipeline_table->pipeline, pipeline_table->capacity);
+        if (pipeline == NULL) {
+            perror("Add pipeline to table");
+            pipeline_table->capacity -= INCR_SIZE; /* reset size */
+            return -1;
+        }
+
+        pipeline_table->pipeline = pipeline;
+    }
+
+    pipeline_table->pipeline[pipeline_table->count] = pipeline_obj;
+    pipeline_table->count += 1;
+    return (pipeline_table->count - 1);
 
     #undef INCR_SIZE
 }

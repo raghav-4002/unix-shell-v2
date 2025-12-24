@@ -2,6 +2,18 @@
 #define COMMAND_H_
 
 
+/*
+    Structure representing a command.
+    Members:
+    - `char **argv`: An array of strings. Should be terminated
+       by `NULL`. Ex - `{"ls", "-al", NULL}`
+    
+    - `int argc`: Number of arguments in `argv` including `NULL`.
+       Ex - `{"ls", "-al", NULL}` has `argc = 3`
+
+    - `int capacity`: Capacity of `argv`. It includes both the
+       occupied and unoccupied space in `argv`
+*/
 typedef struct Command
 {
     char **argv;     /* something like `{"ls", "-al", NULL}` */
