@@ -3,9 +3,15 @@
 
 
 #include "token.h"
+#include "ast.h"
+#include "pipeline.h"
 
 
-int parse_tokens(Token *tokens);
+typedef struct Parser_obj
+{
+    Pipeline_table *pipeline_table;
+    Ast_node       *ast_root;
+} Parser_obj;
 
 
 #endif // PARSER_H_
