@@ -5,7 +5,8 @@
 typedef enum Node_type
 {
     PIPELINE,
-    AND, OR,
+    AND, OR,   /* `&&` and `||` */
+    NEXT,      /* `;` */
 } Node_type;
 
 typedef struct Ast_node
