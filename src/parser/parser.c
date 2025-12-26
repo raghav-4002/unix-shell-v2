@@ -9,6 +9,77 @@
 #include "parser_helper.h"
 
 
+static Command *
+parse_primary(Token *tokens, int *current)
+{
+    if (tokens[*current].type != NAME) {
+        fprintf(stderr, "Syntax Error\n");
+        return NULL;
+    }
+
+    Command *cmd_obj = get_cmd_obj();
+    if (cmd_obj == NULL) {
+        return NULL;
+    }
+
+    while (tokens[*current].type == NAME) {
+        if (add_arg_to_cmd(cmd_obj, tokens[*current].lexeme) == -1) {
+            destroy_cmd_obj(cmd_obj);
+            return NULL;
+        }
+        *current += 1;
+    }
+
+    /* Add `NULL` as the last argument of command */
+    if (add_arg_to_cmd(cmd_obj, NULL) == -1) {
+        return NULL;
+    }
+
+    return cmd_obj;
+}
+
+
+static int
+parse_pipeline(Token *tokens, int *current, Pipeline_table *pipeline_table)
+{
+    Pipeline *pipeline_obj = get_pipeline_obj();
+    if (pipeline_obj == NULL) {
+        return -1;
+    }
+
+    Command *cmd_obj = parse_primary(tokens, current);
+    if (cmd_obj == NULL) {
+        destroy_pipeline_obj(pipeline_obj);
+        return -1;
+    }
+    int err_return = add_cmd_to_pipeline(pipeline_obj, cmd_obj);
+    if (err_return == -1) {
+        destroy_pipeline_obj(pipeline_obj);
+        destroy_cmd_obj(cmd_obj);
+        return -1;
+    }
+
+    while (tokens[*current].type == PIPE) {
+        *current += 1;
+
+        cmd_obj = parse_primary(tokens, current);
+        if (cmd_obj == NULL) {
+            destroy_pipeline_obj(pipeline_obj);
+            return -1;
+        }
+        err_return = add_cmd_to_pipeline(pipeline_obj, cmd_obj);
+        if (err_return == -1) {
+            destroy_pipeline_obj(pipeline_obj);
+            destroy_cmd_obj(cmd_obj);
+            return -1;
+        }
+    }
+
+    err_return = add_pipeline_to_table(pipeline_table, pipeline_obj);
+    return err_return;
+}
+
+
 static Ast_node *
 parse_condition(Token *tokens, int *current, Pipeline_table *pipeline_table)
 {
@@ -57,6 +128,7 @@ parse_condition(Token *tokens, int *current, Pipeline_table *pipeline_table)
 static Parser_obj *
 parse_sequence(Token *tokens, int *current)
 {
+    /* Pipeline table stores all the pipelines */
     Pipeline_table *pipeline_table = get_pipeline_table();
     if (pipeline_table == NULL) {
         return NULL;
