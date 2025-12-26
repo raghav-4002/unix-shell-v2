@@ -4,8 +4,8 @@
 
 typedef enum Node_type
 {
-    /* Only pipeline is defined as for now */
     PIPELINE,
+    AND, OR,
 } Node_type;
 
 typedef struct Ast_node
@@ -15,7 +15,7 @@ typedef struct Ast_node
     /* 
         Index for the pipeline in the pipeline
         table. Only defined for node of type
-        `Pipeline`
+        `PIPELINE`. For other types its `-1`
     */
     int pipeline_index;
     
@@ -23,6 +23,10 @@ typedef struct Ast_node
     struct Ast_node *right;
     struct Ast_node *left;
 } Ast_node;
+
+
+Ast_node *create_ast_node(Node_type type, int pipeline_index);
+void destroy_ast(Ast_node *ast_root);
 
 
 #endif // AST_H_
