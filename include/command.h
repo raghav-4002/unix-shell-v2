@@ -21,9 +21,22 @@ typedef struct Command_obj
 } Command_obj;
 
 
+/* =========================================== */
+
+
+/* Returns a pointer to default-initialized
+   `Command_obj`. Returns `NULL` on error. */
 Command_obj *get_cmd_obj(void);
-void destroy_cmd_obj(Command_obj *command_obj);
-int add_arg_to_cmd(Command_obj *command_obj, const char *arg);
+
+
+/* Free up memory pointed by `command_obj` */
+void destroy_cmd_obj(Command_obj *cmd_obj);
+
+
+/* Add another argument to command array. 
+   On success, returns index where the 
+   arg was added. On failure, returns -1. */
+int add_arg_to_cmd(Command_obj *cmd_obj, const char *arg);
 
 
 #endif // COMMAND_H_
