@@ -4,25 +4,26 @@
 
 typedef enum Node_type
 {
-    PIPELINE,
-    AND, OR,   /* `&&` and `||` */
-    NEXT,      /* `;` */
+    AND, OR,         /* `&&` and `||` */
+
+    NEXT, BG_NEXT,  /* `;` and `&` */
+
+    PIPELINE,       /* for pipelines */
 } Node_type;
 
 typedef struct Ast_node
 {
     Node_type type;
-
-    /* 
-        Index for the pipeline in the pipeline
-        table. Only defined for node of type
-        `PIPELINE`. For other types its `-1`
-    */
-    int pipeline_index;
+    int return_val;
     
     /* Left and right children */
-    struct Ast_node *right;
     struct Ast_node *left;
+    struct Ast_node *right;
+    
+    /* Index in the pipeline table
+       will only be used by nodes of
+       type `PIPELINE`. For rest, its `-1` */
+    int pipeline_index;
 } Ast_node;
 
 
