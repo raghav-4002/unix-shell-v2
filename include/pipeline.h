@@ -33,13 +33,16 @@ typedef struct Pipeline_table
 } Pipeline_table;
 
 
+/* ============================================= */
+
+
 Pipeline_obj *get_pipeline_obj(void);
-void destroy_pipeline_obj(Pipeline_obj *pipeline_obj);
-int add_cmd_to_pipeline(Pipeline_obj *pipeline_obj, Command_obj *command_obj);
+void destroy_pipeline_obj(Pipeline_obj *pipe_obj);
+int add_cmd_to_pipeline(Pipeline_obj *pipe_obj, Command_obj *cmd_obj);
 
 Pipeline_table *get_pipeline_table(void);
-void destroy_pipeline_table(Pipeline_table *pipeline_table);
-int add_pipeline_to_table(Pipeline_table *pipeline_table, Pipeline_obj *pipeline_obj);
+void destroy_pipeline_table(Pipeline_table *pipe_table);
+int add_pipeline_to_table(Pipeline_table *pipe_table, Pipeline_obj *pipe_obj);
 
 
 #endif // PIPELINE_H_
