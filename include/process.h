@@ -2,6 +2,7 @@
 #define PROCESS_H_
 
 
+/* Struct that holds info about a command/process */
 typedef struct Process_obj
 {
     char **argv;     /* something like `{"ls", "-al", NULL}` */
@@ -9,9 +10,6 @@ typedef struct Process_obj
     int    capacity; /* represents the actual size of argv array. 
                         capacity >= argc */
 } Process_obj;
-
-
-/* =========================================== */
 
 
 /* Returns a pointer to default-initialized
