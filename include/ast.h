@@ -1,33 +1,65 @@
+/*
+    AST - Abstrct Syntax Tree is a representation of
+    command execution flow in tree form. The ast takes
+    conditional (`&&` and `||`) and sequential execution
+    (`;`) into account.
+
+    Each node of the AST is of type: AND, OR, NEXT or JOB.
+    Each node also holds a pointer to its left and right
+    child. Also, an extra field, `return_status` is
+    present to dictate execution of next jobs.
+
+    For example, the tree for
+
+        `job1 || job2 && job3`
+    
+    will look like:
+
+            (&&)
+            /  \
+           /    \
+        (||)    (job3)
+        /  \
+       /    \
+    (job1)  (job2)
+
+    Execution will start from `job1`. Based on its
+    success, `job2` will be launched. And similarly
+    `job3` will be executed.
+*/
+
+
 #ifndef AST_H_
 #define AST_H_
 
 
+#include "job.h"
+
+
 typedef enum Node_type
 {
-    AND, OR,         /* `&&` and `||` */
-
-    NEXT, BG_NEXT,  /* `;` and `&` */
-
-    PIPELINE,       /* for pipelines */
+    AND, OR,  /* `&&` and `||` */
+    NEXT,     /* `;` */
+    JOB,
 } Node_type;
+
 
 typedef struct Ast_node
 {
     Node_type type;
-    int return_val;
+    int       return_status;
     
     /* Left and right children */
     struct Ast_node *left;
     struct Ast_node *right;
     
-    /* Index in the pipeline table
-       will only be used by nodes of
-       type `PIPELINE`. For rest, its `-1` */
-    int pipeline_index;
+    /* Only for node of type `JOB`.
+       `NULL` for rest */
+    Job_obj *job;
 } Ast_node;
 
 
-Ast_node *create_ast_node(Node_type type, int pipeline_index);
+Ast_node *create_ast_node(Node_type type, Job_obj *job);
 void destroy_ast(Ast_node *ast_root);
 
 

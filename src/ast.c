@@ -2,10 +2,11 @@
 #include <stdlib.h>
 
 #include "ast.h"
+#include "job.h"
 
 
 Ast_node *
-create_ast_node(Node_type type, int pipeline_index)
+create_ast_node(Node_type type, Job_obj *job)
 {
     Ast_node *node = malloc(sizeof(*node));
     if (node == NULL) {
@@ -13,13 +14,13 @@ create_ast_node(Node_type type, int pipeline_index)
         return NULL;
     }
 
-    node->type           = type;
-    node->pipeline_index = pipeline_index;
+    node->type = type;
+    node->job  = job;
 
     /* Default fields */
-    node->left       = NULL;
-    node->right      = NULL;
-    node->return_val = 0;
+    node->left          = NULL;
+    node->right         = NULL;
+    node->return_status = 0;
 
     return node;
 }
@@ -35,5 +36,7 @@ destroy_ast(Ast_node *ast_root)
 
     destroy_ast(ast_root->left);
     destroy_ast(ast_root->right);
+
+    destroy_job_obj(ast_root->job);
     free(ast_root);
 }
