@@ -51,4 +51,8 @@ typedef struct Instance
 } Instance;
 
 
+Instance *get_instance_obj(void);
+void destroy_instance(Instance *instance);
+
+
 #endif // INSTANCE_H_
