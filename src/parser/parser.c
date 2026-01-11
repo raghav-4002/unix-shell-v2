@@ -6,8 +6,15 @@
 #include "token.h"
 
 
-static Ast_node *parse_sequence(Token *tokens, int *current);
+static Ast_node *parse_condition(Token *tokens, int *current);
 static Instance *parse_instance(Token *tokens, int *current);
+
+
+static Ast_node *
+parse_condition(Token *tokens, int *current)
+{
+    
+}
 
 
 static Instance *
@@ -19,17 +26,22 @@ parse_instance(Token *tokens, int *current)
         return NULL;
     }
 
-    Instance *start    = instance;
-    Ast_node *ast_root = parse_sequence(tokens, current);
+    Instance *ptr      = instance;
+    Ast_node *ast_root = parse_condition(tokens, current);
     if (ast_root == NULL) {
         destroy_instance(instance);
         return NULL;
     }
 
-    start->ast_root = ast_root;
+    ptr->ast_root = ast_root;
 
-    while (tokens[*current].type == AMPRSND) {
-        start->context = BACKGROUND;
+    while (tokens[*current].type == AMPRSND
+        || tokens[*current].type == SEMICLN) {
+
+        if (tokens[*current].type == AMPRSND) {
+            ptr->context = BACKGROUND;
+        }
+
         *current += 1;
 
         if (tokens[*current].type != NIL) {
@@ -39,14 +51,14 @@ parse_instance(Token *tokens, int *current)
                 return NULL;
             }
 
-            start->next = temp;
-            start       = temp;
-            ast_root    = parse_sequence(tokens, current);
+            ptr->next = temp;
+            ptr       = temp;
+            ast_root  = parse_condition(tokens, current);
             if (ast_root == NULL) {
                 destroy_instance(instance);
                 return NULL;
             }
-            start->ast_root = ast_root;
+            ptr->ast_root = ast_root;
         }
     }
 
