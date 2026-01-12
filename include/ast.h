@@ -1,10 +1,9 @@
 /*
     AST - Abstrct Syntax Tree is a representation of
     command execution flow in tree form. The ast takes
-    conditional (`&&` and `||`) and sequential execution
-    (`;`) into account.
+    conditional (`&&` and `||`).
 
-    Each node of the AST is of type: AND, OR, NEXT or JOB.
+    Each node of the AST is of type: AND, OR or JOB.
     Each node also holds a pointer to its left and right
     child. Also, an extra field, `return_status` is
     present to dictate execution of next jobs.
@@ -39,7 +38,6 @@
 typedef enum Node_type
 {
     AND, OR,  /* `&&` and `||` */
-    NEXT,     /* `;` */
     JOB,
 } Node_type;
 
