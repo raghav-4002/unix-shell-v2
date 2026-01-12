@@ -26,19 +26,6 @@ get_lexer_obj(const char *input)
 }
 
 
-bool
-lex_current_at_end(struct Lexer_obj *lexer_obj)
-{
-    const char *source = lexer_obj->source;
-    size_t current     = lexer_obj->current;
-
-    if (source[current] == '\0') {
-        return true;
-    }
-    return false;
-}
-
-
 /* Advances current and returns the character
     previously pointed by current */
 char
@@ -90,13 +77,14 @@ create_substring(const char *string, size_t start, size_t end)
 
 
 void
-destroy_lex_data(struct Lexer_obj *lexer_obj)
+destroy_lexer_obj(struct Lexer_obj *lexer_obj)
 {
     Token *tokens       = lexer_obj->tokens;
     size_t tokens_count = lexer_obj->tok_count - 1;
 
     free(lexer_obj);
     free_tokens(tokens, tokens_count);
+
 }
 
 
@@ -113,8 +101,8 @@ lex_expand_tok_array(struct Lexer_obj *lexer_obj)
     size_t new_arr_size = lexer_obj->tok_count + 1;
     temp = realloc(tokens, new_arr_size * sizeof(*tokens));
 
-    if (!temp) {
-        perror(NULL);
+    if (temp == NULL) {
+        perror("lex_expand_tok_array");
         free(tokens);
         return -1;
     }

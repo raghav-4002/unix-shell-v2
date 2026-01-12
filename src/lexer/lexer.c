@@ -36,7 +36,7 @@ add_word(struct Lexer_obj *lexer_obj)
 static int
 add_token(struct Lexer_obj *lexer_obj, Token_type type)
 {
-    if (lexer_obj->tok_count == MAX_TOK_COUNT) {
+    if (lexer_obj->tok_count >= MAX_TOK_COUNT) {
         fprintf(stderr, "Max token count exceeded\n");
         return -1;
     }
@@ -46,11 +46,10 @@ add_token(struct Lexer_obj *lexer_obj, Token_type type)
         return -1;
     }
 
-    Token *tokens    = lexer_obj->tokens;
-    size_t cur_index = lexer_obj->tok_count - 1;
-    Token *cur_token = &tokens[cur_index];
+    Token *tokens     = lexer_obj->tokens;
+    size_t curr_index = lexer_obj->tok_count - 1;
 
-    lex_init_token(cur_token, type);
+    lex_init_token(&tokens[curr_index], type);
 
     if (type == NAME) {
         /* Add lexeme value for token of type `NAME` */
@@ -64,7 +63,7 @@ add_token(struct Lexer_obj *lexer_obj, Token_type type)
 static int
 handle_word(struct Lexer_obj *lexer_obj)
 {
-    char curr_ch = LEX_GET_CURR_CHAR(lexer_obj);
+    char curr_ch = GET_CURR_CHAR(lexer_obj);
 
     /* Move current ahead, until any of the recognised lexeme is not found */
     while (curr_ch != ' ' && curr_ch != '\t' && curr_ch != '\0'
@@ -72,9 +71,9 @@ handle_word(struct Lexer_obj *lexer_obj)
         && curr_ch != '>' && curr_ch != '<') {
 
         lex_advance_current(lexer_obj);
-        curr_ch = LEX_GET_CURR_CHAR(lexer_obj);
+        curr_ch = GET_CURR_CHAR(lexer_obj);
 
-        if (CURR_LEXEME_SIZE(lexer_obj) > MAX_LEXEME_SIZE) {
+        if (GET_CURR_LEXEME_SIZE(lexer_obj) > MAX_LEXEME_SIZE) {
             fprintf(stderr, "Maximum allowed lexeme size exceeded\n");
             return -1;
         }
@@ -104,7 +103,7 @@ scan_token(struct Lexer_obj *lexer_obj)
             return add_token(lexer_obj, BACKSLSH);
 
         case '|':
-            if ('|' == LEX_GET_CURR_CHAR(lexer_obj)) {
+            if ('|' == GET_CURR_CHAR(lexer_obj)) {
                 lex_advance_current(lexer_obj);
                 return add_token(lexer_obj, DOUBLE_PIPE);
             }
@@ -113,7 +112,7 @@ scan_token(struct Lexer_obj *lexer_obj)
             }
 
         case '&':
-            if ('&' == LEX_GET_CURR_CHAR(lexer_obj)) {
+            if ('&' == GET_CURR_CHAR(lexer_obj)) {
                 lex_advance_current(lexer_obj);
                 return add_token(lexer_obj, DOUBLE_AMPRSND);
             }
@@ -137,7 +136,7 @@ tokenize(const char *input)
     }
 
     /* Main tokenizer loop */
-    while (lex_current_at_end(lexer_obj) == false) {
+    while (IS_CURR_AT_END(lexer_obj) == false) {
         /* Move to the next lexeme */
         lexer_obj->start = lexer_obj->current;
 

@@ -19,14 +19,19 @@ struct Lexer_obj
 };
 
 
-#define LEX_GET_CURR_CHAR(lexer_obj) \
-        lexer_obj->source[lexer_obj->current] \
+#define IS_CURR_AT_END(lexer_obj)                     \
+        lexer_obj->source[lexer_obj->current] == '\0' \
+        ? true : false                                \
 
-#define CURR_LEXEME_SIZE(lexer_obj) \
-        lexer_obj->current - lexer_obj->start \
+#define GET_CURR_CHAR(lexer_obj)                      \
+        lexer_obj->source[lexer_obj->current]         \
+
+#define GET_CURR_LEXEME_SIZE(lexer_obj)               \
+        lexer_obj->current - lexer_obj->start         \
+
+
 
 struct Lexer_obj *get_lexer_obj(const char *input);
-bool lex_current_at_end(struct Lexer_obj *lexer_obj);
 char lex_advance_current(struct Lexer_obj *lexer_obj);
 void lex_init_token(Token *token, Token_type type);
 int lex_expand_tok_array(struct Lexer_obj *lexer_obj);
