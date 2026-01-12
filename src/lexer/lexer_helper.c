@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,10 +8,10 @@
 #include "utils.h"
 
 
-struct Lexer_obj *
+Lexer_obj *
 get_lexer_obj(const char *input)
 {
-    struct Lexer_obj *lexer_obj = malloc(sizeof(*lexer_obj));
+    Lexer_obj *lexer_obj = malloc(sizeof(*lexer_obj));
     if (lexer_obj == NULL) {
         perror(NULL);
         return NULL;
@@ -29,7 +30,7 @@ get_lexer_obj(const char *input)
 /* Advances current and returns the character
     previously pointed by current */
 char
-lex_advance_current(struct Lexer_obj *lexer_obj)
+advance_current(Lexer_obj *lexer_obj)
 {
     lexer_obj->current += 1;
     size_t current      = lexer_obj->current;
@@ -40,19 +41,21 @@ lex_advance_current(struct Lexer_obj *lexer_obj)
 
 
 bool
-lex_peek(struct Lexer_obj *lexer_obj, const char expected)
+is_current_at_end(Lexer_obj *lexer_obj)
 {
-    const char *source = lexer_obj->source;
-    size_t current     = lexer_obj->current;
+    const char *string = lexer_obj->source;
+    const size_t current = lexer_obj->current;
 
-    if (source[current] == expected) return true;
+    if (string[current] == '\0') {
+        return true;
+    }
 
     return false;
 }
 
 
 void
-lex_init_token(Token *token, Token_type type)
+init_token(Token *token, Token_type type)
 {
     token->type   = type;
     token->lexeme = NULL;
@@ -77,7 +80,7 @@ create_substring(const char *string, size_t start, size_t end)
 
 
 void
-destroy_lexer_obj(struct Lexer_obj *lexer_obj)
+destroy_lexer_obj(Lexer_obj *lexer_obj)
 {
     Token *tokens       = lexer_obj->tokens;
     size_t tokens_count = lexer_obj->tok_count - 1;
@@ -89,7 +92,7 @@ destroy_lexer_obj(struct Lexer_obj *lexer_obj)
 
 
 int
-lex_expand_tok_array(struct Lexer_obj *lexer_obj)
+expand_tok_array(Lexer_obj *lexer_obj)
 {
     Token *tokens = lexer_obj->tokens;
     Token *temp   = NULL;

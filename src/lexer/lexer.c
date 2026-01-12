@@ -8,14 +8,14 @@
 #include "lexer_helper.h"
 
 
-static int add_word(struct Lexer_obj *lexer_obj);
-static int add_token(struct Lexer_obj *lexer_obj, Token_type type);
-static int handle_word(struct Lexer_obj *lexer_obj);
-static int scan_token(struct Lexer_obj *lexer_obj);
+static int add_word(Lexer_obj *lexer_obj);
+static int add_token(Lexer_obj *lexer_obj, Token_type type);
+static int handle_word(Lexer_obj *lexer_obj);
+static int scan_token(Lexer_obj *lexer_obj);
 
 
 static int
-add_word(struct Lexer_obj *lexer_obj)
+add_word(Lexer_obj *lexer_obj)
 {
     const char *string = lexer_obj->source;
     size_t start       = lexer_obj->start;
@@ -34,7 +34,7 @@ add_word(struct Lexer_obj *lexer_obj)
 
 
 static int
-add_token(struct Lexer_obj *lexer_obj, Token_type type)
+add_token(Lexer_obj *lexer_obj, Token_type type)
 {
     if (lexer_obj->tok_count >= MAX_TOK_COUNT) {
         fprintf(stderr, "Max token count exceeded\n");
@@ -42,14 +42,14 @@ add_token(struct Lexer_obj *lexer_obj, Token_type type)
     }
 
     /* Expand the tokens array to add space for new token */
-    if (lex_expand_tok_array(lexer_obj) == -1) {
+    if (expand_tok_array(lexer_obj) == -1) {
         return -1;
     }
 
     Token *tokens     = lexer_obj->tokens;
     size_t curr_index = lexer_obj->tok_count - 1;
 
-    lex_init_token(&tokens[curr_index], type);
+    init_token(&tokens[curr_index], type);
 
     if (type == NAME) {
         /* Add lexeme value for token of type `NAME` */
@@ -61,7 +61,7 @@ add_token(struct Lexer_obj *lexer_obj, Token_type type)
 
 
 static int
-handle_word(struct Lexer_obj *lexer_obj)
+handle_word(Lexer_obj *lexer_obj)
 {
     char curr_ch = GET_CURR_CHAR(lexer_obj);
 
@@ -70,11 +70,11 @@ handle_word(struct Lexer_obj *lexer_obj)
         && curr_ch != ';' && curr_ch != '&'  && curr_ch != '|'
         && curr_ch != '>' && curr_ch != '<') {
 
-        lex_advance_current(lexer_obj);
+        advance_current(lexer_obj);
         curr_ch = GET_CURR_CHAR(lexer_obj);
 
         if (GET_CURR_LEXEME_SIZE(lexer_obj) > MAX_LEXEME_SIZE) {
-            fprintf(stderr, "Maximum allowed lexeme size exceeded\n");
+            fprintf(stderr, "Maximum allowed word size exceeded\n");
             return -1;
         }
     }
@@ -85,10 +85,10 @@ handle_word(struct Lexer_obj *lexer_obj)
 
 /* Identify lexeme starting from `start` to `current` in the string */
 static int
-scan_token(struct Lexer_obj *lexer_obj)
+scan_token(Lexer_obj *lexer_obj)
 {
     /* Get the first character of current lexeme */
-    const char c   = lex_advance_current(lexer_obj);
+    const char c   = advance_current(lexer_obj);
     int err_return = 0;
 
     switch (c) {
@@ -104,7 +104,7 @@ scan_token(struct Lexer_obj *lexer_obj)
 
         case '|':
             if ('|' == GET_CURR_CHAR(lexer_obj)) {
-                lex_advance_current(lexer_obj);
+                advance_current(lexer_obj);
                 return add_token(lexer_obj, DOUBLE_PIPE);
             }
             else {
@@ -113,7 +113,7 @@ scan_token(struct Lexer_obj *lexer_obj)
 
         case '&':
             if ('&' == GET_CURR_CHAR(lexer_obj)) {
-                lex_advance_current(lexer_obj);
+                advance_current(lexer_obj);
                 return add_token(lexer_obj, DOUBLE_AMPRSND);
             }
             else {
@@ -130,13 +130,13 @@ scan_token(struct Lexer_obj *lexer_obj)
 Token *
 tokenize(const char *input)
 {
-    struct Lexer_obj *lexer_obj = get_lexer_obj(input);
+    Lexer_obj *lexer_obj = get_lexer_obj(input);
     if (lexer_obj == NULL) {
         return NULL;
     }
 
     /* Main tokenizer loop */
-    while (IS_CURR_AT_END(lexer_obj) == false) {
+    while (!is_current_at_end(lexer_obj)) {
         /* Move to the next lexeme */
         lexer_obj->start = lexer_obj->current;
 

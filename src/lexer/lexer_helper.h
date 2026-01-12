@@ -8,7 +8,7 @@
 #include "token.h"
 
 
-struct Lexer_obj
+typedef struct Lexer_obj
 {
     Token *tokens;    /* Pointer to the current generated tokens */
     size_t tok_count; /* Size of the `tokens` array */
@@ -16,12 +16,8 @@ struct Lexer_obj
     const char *source;    /* string to be tokenized */
     size_t      start;     /* 1st char of the lexeme */
     size_t      current;   /* current char of string being considered */
-};
+} Lexer_obj;
 
-
-#define IS_CURR_AT_END(lexer_obj)                     \
-        lexer_obj->source[lexer_obj->current] == '\0' \
-        ? true : false                                \
 
 #define GET_CURR_CHAR(lexer_obj)                      \
         lexer_obj->source[lexer_obj->current]         \
@@ -31,12 +27,13 @@ struct Lexer_obj
 
 
 
-struct Lexer_obj *get_lexer_obj(const char *input);
-char lex_advance_current(struct Lexer_obj *lexer_obj);
-void lex_init_token(Token *token, Token_type type);
-int lex_expand_tok_array(struct Lexer_obj *lexer_obj);
+Lexer_obj *get_lexer_obj(const char *input);
+bool is_current_at_end(Lexer_obj *lexer_obj);
+char advance_current(Lexer_obj *lexer_obj);
+void init_token(Token *token, Token_type type);
+int expand_tok_array(Lexer_obj *lexer_obj);
 char *create_substring(const char *string, size_t start, size_t end);
-void destroy_lexer_obj(struct Lexer_obj *lexer_obj);
+void destroy_lexer_obj(Lexer_obj *lexer_obj);
 
 
 #endif // LEXER_HELPER_
