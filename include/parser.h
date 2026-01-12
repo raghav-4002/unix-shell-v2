@@ -2,11 +2,11 @@
 #define PARSER_H_
 
 
-#include "instance.h"
+#include "exec_unit.h"
 #include "token.h"
 
 
-Instance *parse_tokens(Token *tokens);
+Execution_unit *parse_tokens(Token *tokens);
 
 
 #endif // PARSER_H_
