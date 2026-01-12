@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdbool.h>
-#include <string.h>
 #include <stdio.h>
 
 #include "lexer.h"
@@ -10,29 +9,31 @@
 
 static int add_word(Lexer_obj *lexer_obj);
 static int add_token(Lexer_obj *lexer_obj, Token_type type);
-static int handle_word(Lexer_obj *lexer_obj);
+static int handle_name(Lexer_obj *lexer_obj);
 static int scan_token(Lexer_obj *lexer_obj);
 
 
+/* Adds the literal lexeme into the token of type `NAME` */
 static int
 add_word(Lexer_obj *lexer_obj)
 {
     const char *string = lexer_obj->source;
-    size_t start       = lexer_obj->start;
-    size_t end         = lexer_obj->current;
-    size_t cur_index   = lexer_obj->tok_count - 1;
+    int start       = lexer_obj->start;
+    int end         = lexer_obj->current;
+    int cur_index   = lexer_obj->tok_count - 1;
 
     char *substring = create_substring(string, start, end);
-
     if (substring == NULL) {
         return -1;
     }
 
+    /* Add substring as the lexeme for WORD */
     lexer_obj->tokens[cur_index].lexeme = substring;
     return 0;
 }
 
 
+/* Add token to `tokens` array of `Lexer_obj` */
 static int
 add_token(Lexer_obj *lexer_obj, Token_type type)
 {
@@ -47,7 +48,7 @@ add_token(Lexer_obj *lexer_obj, Token_type type)
     }
 
     Token *tokens     = lexer_obj->tokens;
-    size_t curr_index = lexer_obj->tok_count - 1;
+    int curr_index = lexer_obj->tok_count - 1;
 
     init_token(&tokens[curr_index], type);
 
@@ -60,8 +61,9 @@ add_token(Lexer_obj *lexer_obj, Token_type type)
 }
 
 
+/* For tokens of type `NAME`, identify the lexeme and add token to array  */
 static int
-handle_word(Lexer_obj *lexer_obj)
+handle_name(Lexer_obj *lexer_obj)
 {
     char curr_ch = GET_CURR_CHAR(lexer_obj);
 
@@ -89,7 +91,6 @@ scan_token(Lexer_obj *lexer_obj)
 {
     /* Get the first character of current lexeme */
     const char c   = advance_current(lexer_obj);
-    int err_return = 0;
 
     switch (c) {
         case ' ': case '\t':
@@ -102,7 +103,7 @@ scan_token(Lexer_obj *lexer_obj)
         case '\\':  /* Match `\` */
             return add_token(lexer_obj, BACKSLSH);
 
-        case '|':
+        case '|':   /* `|` and `||` */
             if ('|' == GET_CURR_CHAR(lexer_obj)) {
                 advance_current(lexer_obj);
                 return add_token(lexer_obj, DOUBLE_PIPE);
@@ -111,7 +112,7 @@ scan_token(Lexer_obj *lexer_obj)
                 return add_token(lexer_obj, PIPE);
             }
 
-        case '&':
+        case '&':   /* `&` and `&&` */
             if ('&' == GET_CURR_CHAR(lexer_obj)) {
                 advance_current(lexer_obj);
                 return add_token(lexer_obj, DOUBLE_AMPRSND);
@@ -122,7 +123,7 @@ scan_token(Lexer_obj *lexer_obj)
 
         /* ==== Word tokens ==== */
         default:
-            return handle_word(lexer_obj);
+            return handle_name(lexer_obj);
     }
 }
 

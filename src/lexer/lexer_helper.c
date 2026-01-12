@@ -33,7 +33,7 @@ char
 advance_current(Lexer_obj *lexer_obj)
 {
     lexer_obj->current += 1;
-    size_t current      = lexer_obj->current;
+    int current      = lexer_obj->current;
     const char *source  = lexer_obj->source;
 
     return source[current - 1];
@@ -44,7 +44,7 @@ bool
 is_current_at_end(Lexer_obj *lexer_obj)
 {
     const char *string = lexer_obj->source;
-    const size_t current = lexer_obj->current;
+    const int current = lexer_obj->current;
 
     if (string[current] == '\0') {
         return true;
@@ -63,13 +63,15 @@ init_token(Token *token, Token_type type)
 
 
 char *
-create_substring(const char *string, size_t start, size_t end)
+create_substring(const char *string, int start, int end)
 {
     /* Add `1` for null-byte */
-    size_t buf_size = (end - start) + 1;
+    int buf_size = (end - start) + 1;
     char *substring = malloc(buf_size * sizeof(*substring));
 
-    if (!substring) return NULL;
+    if (substring == NULL) { 
+        return NULL;
+    }
 
     string += start;  /* `string` ptr points to start of substring */
     memcpy(substring, string, buf_size - 1);
@@ -83,7 +85,7 @@ void
 destroy_lexer_obj(Lexer_obj *lexer_obj)
 {
     Token *tokens       = lexer_obj->tokens;
-    size_t tokens_count = lexer_obj->tok_count - 1;
+    int tokens_count = lexer_obj->tok_count - 1;
 
     free(lexer_obj);
     free_tokens(tokens, tokens_count);
@@ -101,7 +103,7 @@ expand_tok_array(Lexer_obj *lexer_obj)
         See this SO answer for realloc error handling:
         https://stackoverflow.com/a/1986572/31078065
      */
-    size_t new_arr_size = lexer_obj->tok_count + 1;
+    int new_arr_size = lexer_obj->tok_count + 1;
     temp = realloc(tokens, new_arr_size * sizeof(*tokens));
 
     if (temp == NULL) {

@@ -11,11 +11,11 @@
 typedef struct Lexer_obj
 {
     Token *tokens;    /* Pointer to the current generated tokens */
-    size_t tok_count; /* Size of the `tokens` array */
+    int    tok_count; /* Size of the `tokens` array */
 
     const char *source;    /* string to be tokenized */
-    size_t      start;     /* 1st char of the lexeme */
-    size_t      current;   /* current char of string being considered */
+    int         start;     /* 1st char of the lexeme */
+    int         current;   /* current char of string being considered */
 } Lexer_obj;
 
 
@@ -32,7 +32,7 @@ bool is_current_at_end(Lexer_obj *lexer_obj);
 char advance_current(Lexer_obj *lexer_obj);
 void init_token(Token *token, Token_type type);
 int expand_tok_array(Lexer_obj *lexer_obj);
-char *create_substring(const char *string, size_t start, size_t end);
+char *create_substring(const char *string, int start, int end);
 void destroy_lexer_obj(Lexer_obj *lexer_obj);
 
 
