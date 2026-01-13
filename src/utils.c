@@ -3,9 +3,9 @@
 
 
 void
-free_tokens(Token *tokens, size_t tokens_count)
+free_tokens(Token *tokens)
 {
-    for (size_t i = 0; i < tokens_count; i++) {
+    for (int i = 0; tokens[i].type != NIL; i++) {
         if (tokens[i].type == NAME) {
             free(tokens[i].lexeme);
         }

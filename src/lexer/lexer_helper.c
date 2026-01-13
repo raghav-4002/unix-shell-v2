@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "lexer_helper.h"
+#include "token.h"
 #include "utils.h"
 
 
@@ -87,9 +88,14 @@ destroy_lexer_obj(Lexer_obj *lexer_obj)
     Token *tokens       = lexer_obj->tokens;
     int tokens_count = lexer_obj->tok_count - 1;
 
-    free(lexer_obj);
-    free_tokens(tokens, tokens_count);
+    for (int i = 0; i < tokens_count; i++) {
+        if (tokens[i].type == NAME) {
+            free(tokens[i].lexeme);
+        }
+    }
 
+    free(tokens);
+    free(lexer_obj);
 }
 
 
