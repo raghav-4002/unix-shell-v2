@@ -37,6 +37,8 @@ destroy_ast(Ast_node *ast_root)
     destroy_ast(ast_root->left);
     destroy_ast(ast_root->right);
 
-    destroy_job_obj(ast_root->job);
+    if (ast_root->type == JOB) {
+        destroy_job_obj(ast_root->job);
+    }
     free(ast_root);
 }
