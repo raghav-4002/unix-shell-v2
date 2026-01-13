@@ -70,7 +70,7 @@ handle_name(Lexer_obj *lexer_obj)
     /* Move current ahead, until any of the recognised lexeme is not found */
     while (curr_ch != ' ' && curr_ch != '\t' && curr_ch != '\0'
         && curr_ch != ';' && curr_ch != '&'  && curr_ch != '|'
-        && curr_ch != '>' && curr_ch != '<') {
+        && curr_ch != '\n') {
 
         advance_current(lexer_obj);
         curr_ch = GET_CURR_CHAR(lexer_obj);

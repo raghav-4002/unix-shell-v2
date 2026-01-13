@@ -46,7 +46,7 @@ is_current_at_end(Lexer_obj *lexer_obj)
     const char *string = lexer_obj->source;
     const int current = lexer_obj->current;
 
-    if (string[current] == '\0') {
+    if (string[current] == '\0' || string[current] == '\n') {
         return true;
     }
 
