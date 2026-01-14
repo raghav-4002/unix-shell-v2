@@ -5,14 +5,45 @@
 #include "exec_unit.h"
 
 
-int
-find_return_stat_of_root(Ast_node *root)
-{
+static int find_root_return_stat(Ast_node *root);
+static void traverse_and_eval_ast(Ast_node *root);
+static void execute_unit(Execution_unit *unit);
 
+
+static int
+find_root_return_stat(Ast_node *root)
+{
+    Node_type root_type = root->type;
+    int left_status  = root->left->return_status;
+    int right_status = root->right->return_status;
+
+    if (root_type == AND) {
+        if (left_status == 0 && right_status == 0) {
+            return 0;
+        }
+        else if (left_status == 0 && right_status != 0) {
+            return right_status;
+        }
+        else if (left_status != 0) {
+            return left_status;
+        }
+    }
+
+    else if (root_type == OR) {
+        if (left_status != 0 && right_status != 0) {
+            return right_status;
+        }
+        else if (left_status != 0 && right_status == 0) {
+            return 0;
+        }
+        else if (left_status == 0) {
+            return 0;
+        }
+    }
 }
 
 
-void
+static void
 traverse_and_eval_ast(Ast_node *root)
 {
     if (root->type == JOB) {
@@ -27,12 +58,13 @@ traverse_and_eval_ast(Ast_node *root)
      || (root->type == OR  && root->left->return_status != 0)) {
     
         traverse_and_eval_ast(root->right);
-        root->return_status = find_return_stat_of_root(root);
     }
+
+    root->return_status = find_root_return_stat(root);
 }
 
 
-void
+static void
 execute_unit(Execution_unit *unit)
 {
     //TODO: Check for foreground and background goes here
