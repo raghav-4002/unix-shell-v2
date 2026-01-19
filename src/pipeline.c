@@ -1,5 +1,10 @@
+#include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <wait.h>
 
 #include "pipeline.h"
 #include "command.h"
@@ -60,4 +65,91 @@ add_command_to_pipeline(Pipeline *pipeline, Command *command)
     return pipeline->command_count - 1;
 
     #undef INCR_SIZE
+}
+
+
+static void
+terminate_pipeline(Pipeline *pipeline)
+{
+    /* Go to each command in pipeline, terminate it if its running */
+}
+
+
+static int
+wait_for_pipeline(Pipeline *pipeline)
+{
+    // wait here for children and checkk if any of the child fails
+    for (;;) {
+        int status;
+        pid_t child_pid = wait(&status);
+
+        if (child_pid == -1) {
+            if (errno == ECHILD) {
+                /* no more children to wait for */
+                break;
+            }
+            else {
+                /* wait fails */
+                return -1;
+            }
+        }
+
+        /* Find the command with the specified pid and update its status */
+        for (int i = 0; i < pipeline->command_count; i++) {
+            if (pipeline->command[i]->pid == child_pid) {
+                update_command_status(pipeline->command[i], false, -1);
+                pipeline->command[i]->return_status = status;
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+int
+launch_pipeline(Pipeline *pipeline)
+{
+    int pipefd[2];
+    int infile = STDIN_FILENO;
+    int outfile;
+
+    for (int i = 0; i < pipeline->command_count; i++) {
+        if (i + 1 == pipeline->command_count) {
+            /* Stdout as outfile for last command in pipeline */
+            outfile = STDOUT_FILENO;
+        }
+        else {
+            if (pipe(pipefd) < 0) {
+                perror("pipe");
+                terminate_pipeline(pipeline);
+                return -1;
+            }
+            outfile = pipefd[1];
+        }
+
+        pid_t pid = fork();
+
+        switch (pid) {
+            case 0:
+                /* Child process */
+                launch_command(pipeline->command[i], infile, outfile);
+
+            case -1:
+                /* fork fails */
+                perror("fork");
+                terminate_pipeline(pipeline);
+                return -1;
+
+            default:
+                /* parent process */
+                update_command_status(pipeline->command[i], true, pid);
+        }
+    }
+
+    if (wait_for_pipeline(pipeline) == -1) {
+        terminate_pipeline(pipeline);
+        return -1;
+    }
+    return pipeline->command[pipeline->command_count - 1]->return_status;
 }

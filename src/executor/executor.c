@@ -3,11 +3,12 @@
 #include "executor.h"
 #include "ast.h"
 #include "job.h"
+#include "pipeline.h"
 
 
 static int find_root_return_stat(Ast_node *root);
 static void traverse_and_eval_ast(Ast_node *root);
-static void execute_unit(Execution_unit *unit);
+static void execute_job(Job *job);
 
 
 static int
@@ -46,9 +47,8 @@ find_root_return_stat(Ast_node *root)
 static void
 traverse_and_eval_ast(Ast_node *root)
 {
-    if (root->type == JOB) {
-        int return_status = launch_job(root->job);
-        root->return_status = return_status;
+    if (root->type == PIPELINE) {
+        root->return_status = launch_pipeline(root->pipeline);
         return;
     }
 
@@ -65,19 +65,17 @@ traverse_and_eval_ast(Ast_node *root)
 
 
 static void
-execute_unit(Execution_unit *unit)
+execute_job(Job *job)
 {
     //TODO: Check for foreground and background goes here
-    traverse_and_eval_ast(unit->ast_root);
+    traverse_and_eval_ast(job->ast_root);
 }
 
 
 void
-execute(Execution_unit *head)
+execute(Job *head)
 {
-    Execution_unit *ptr = head;
-    while (ptr != NULL) {
-        execute_unit(ptr);
-        ptr = ptr->next;
+    for (Job *job = head; job != NULL; job = job->next) {
+        execute_job(job);
     }
 }

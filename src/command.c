@@ -85,6 +85,15 @@ launch_command(Command *command, int infile, int outfile)
     // TODO: Add signal handler when parent wants to terminate
     // all its children
 
+    if (infile != STDIN_FILENO) {
+        dup2(infile, STDIN_FILENO);
+        close(infile);
+    }
+    if (outfile != STDOUT_FILENO) {
+        dup2(outfile, STDOUT_FILENO);
+        close(outfile);
+    }
+
     char **argv = command->argv;
     execvp(argv[0], argv);
 
