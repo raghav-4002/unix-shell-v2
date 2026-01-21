@@ -4,16 +4,16 @@
 
 #include "parser.h"
 #include "ast.h"
-#include "job.h"
+#include "list.h"
 #include "pipeline.h"
 #include "command.h"
 #include "token.h"
 
 
-static Command  *parse_command(Token *tokens, int *current);
-static Ast_node *parse_pipeline(Token *tokens, int *current);
-static Ast_node *parse_condition(Token *tokens, int *current);
-static Job      *parse_sequence(Token *tokens, int *current);
+static Command   *parse_command(Token *tokens, int *current);
+static Ast_node  *parse_pipeline(Token *tokens, int *current);
+static Ast_node  *parse_condition(Token *tokens, int *current);
+static List_node *parse_sequence(Token *tokens, int *current);
 
 
 /* Individual command and its args */
@@ -136,19 +136,19 @@ parse_condition(Token *tokens, int *current)
 
 
 /* Parse `&` and `;` */
-static Job *
+static List_node *
 parse_sequence(Token *tokens, int *current)
 {
     /* `head` is the head of the `Job` linked list */
-    Job *head = get_job_node();
+    List_node *head = get_list_node();
     if (head == NULL) {
         return NULL;
     }
 
-    Job *ptr = head;
+    List_node *ptr = head;
     Ast_node *ast_root  = parse_condition(tokens, current);
     if (ast_root == NULL) {
-        destroy_job_list(head);
+        destroy_list(head);
         return NULL;
     }
 
@@ -157,7 +157,7 @@ parse_sequence(Token *tokens, int *current)
     while (tokens[*current].type == AMPRSND
         || tokens[*current].type == SEMICLN) {
 
-        /* Last unit should be in background */
+        /* Last node should be in background */
         if (tokens[*current].type == AMPRSND) {
             ptr->is_foreground = false;
         }
@@ -167,9 +167,9 @@ parse_sequence(Token *tokens, int *current)
         /* For scenerio like `command &` or
             `command ;`, below will not execute */
         if (tokens[*current].type != NIL) {
-            Job *temp = get_job_node();
+            List_node *temp = get_list_node();
             if (temp == NULL) {
-                destroy_job_list(head);
+                destroy_list(head);
                 return NULL;
             }
 
@@ -178,7 +178,7 @@ parse_sequence(Token *tokens, int *current)
             ptr       = temp;
             ast_root  = parse_condition(tokens, current);
             if (ast_root == NULL) {
-                destroy_job_list(head);
+                destroy_list(head);
                 return NULL;
             }
             ptr->ast_root = ast_root;
@@ -189,18 +189,18 @@ parse_sequence(Token *tokens, int *current)
 }
 
 
-Job *
+List_node *
 parse_tokens(Token *tokens)
 {
     int current = 0;
-    Job *head = parse_sequence(tokens, &current);
+    List_node *head = parse_sequence(tokens, &current);
     if (head == NULL) {
         return NULL;
     }
 
     /* If not all tokens are parsed */
     if (tokens[current].type != NIL) {
-        destroy_job_list(head);
+        destroy_list(head);
         return NULL;
     }
 

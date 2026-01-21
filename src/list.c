@@ -1,4 +1,4 @@
-#include "job.h"
+#include "list.h"
 #include "ast.h"
 
 #include <stdbool.h>
@@ -6,23 +6,23 @@
 
 
 void
-destroy_job_list(Job *head)
+destroy_list(List_node *head)
 {
     while (head != NULL) {
         if (head->ast_root != NULL) {
             destroy_ast(head->ast_root);
         }
-        Job *temp = head;
+        List_node *temp = head;
         head = head->next;
         free(temp);
     }
 }
 
 
-Job *
-get_job_node(void)
+List_node *
+get_list_node(void)
 {
-    Job *node = malloc(sizeof(*node));
+    List_node *node = malloc(sizeof(*node));
     if (node == NULL) {
         return NULL;
     }

@@ -2,10 +2,10 @@
 #define EXECUTOR_H_
 
 
-#include "job.h"
+#include "list.h"
 
 
-void execute(Job *head);
+void execute(List_node *head);
 
 
 #endif // EXECUTOR_H_
