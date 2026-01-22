@@ -139,7 +139,7 @@ parse_condition(Token *tokens, int *current)
 static List_node *
 parse_sequence(Token *tokens, int *current)
 {
-    /* `head` is the head of the `Job` linked list */
+    /* `head` is the head of the `List_node` linked list */
     List_node *head = get_list_node();
     if (head == NULL) {
         return NULL;
@@ -200,6 +200,7 @@ parse_tokens(Token *tokens)
 
     /* If not all tokens are parsed */
     if (tokens[current].type != NIL) {
+        fprintf(stderr, "Syntax Error\n");
         destroy_list(head);
         return NULL;
     }

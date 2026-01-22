@@ -12,9 +12,9 @@
 
 typedef struct List_node
 {
-    bool        is_foreground;
-    Ast_node   *ast_root;
-    struct Job *next;
+    bool              is_foreground;
+    Ast_node         *ast_root;
+    struct List_node *next;
 } List_node;
 
 
