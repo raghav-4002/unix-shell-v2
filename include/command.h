@@ -25,10 +25,10 @@ typedef struct Command
 {
    char **argv;     /* something like `{"ls", "-al", NULL}` */
    int    argc;
-   int    capacity;
-   bool   is_running;
-   pid_t  pid;     /* -1 if not running */
    int    return_status;
+   pid_t  pid;
+   pid_t  pgid;
+   int    capacity;
 } Command;
 
 

@@ -13,6 +13,37 @@ static void traverse_ast(Ast_node *ast_root, bool in_subshell, bool in_foregroun
 static bool can_execute_right_pipeline(Ast_node *node);
 
 
+static void
+update_node_status(Ast_node *node)
+{
+    assert(node->type == AND || node->type == OR);
+
+    if (node->type == AND) {
+        if (node->left->return_status != 0) {
+            node->return_status = node->left->return_status;
+        }
+        else if (node->right->return_status != 0) {
+            node->return_status = node->right->return_status;
+        }
+        else {
+            node->return_status = 0;
+        }
+    }
+
+    else if (node->type == OR) {
+        if (node->left->return_status == 0) {
+            node->return_status = 0;
+        }
+        else if (node->right->return_status == 0) {
+            node->return_status = 0;
+        }
+        else {
+            node->return_status = node->right->return_status;
+        }
+    }
+}
+
+
 static bool
 can_execute_right_pipeline(Ast_node *node)
 {
@@ -46,16 +77,17 @@ traverse_ast(Ast_node *ast_root, bool in_subshell, bool in_foreground)
     }
 
     assert(node->type == PIPELINE);
-    // TODO: launch_pipeline(node->pipeline, in_subshell, in_foreground)
-    // update node return status
+    int return_status = launch_pipeline(node->pipeline, false, true);
+    node->return_status = return_status;
 
     while (stack != NULL) {
         node = pop_node_from_stack(&stack);
         assert(node->type == AND || node->type == OR);
+
         if (can_execute_right_pipeline(node)) {
-            // TODO: launch_pipeline(node->right->pipeline, in_subshell, in_foreground)
-            // update node->right->return_status
-            // update node->return_status
+            return_status = launch_pipeline(node->right->pipeline, false, true);
+            node->right->return_status = return_status;
+            update_node_status(node);
         }
     }
 }

@@ -18,8 +18,8 @@ get_command_obj(void)
     command->argv          = NULL;
     command->argc          = 0;
     command->capacity      = 0;
-    command->is_running    = false;
-    command->pid           = -1;
+    // command->is_running    = false;
+    // command->pid           = -1;
     command->return_status = 0;
     return command;
 }
@@ -74,8 +74,8 @@ add_arg_to_command(Command *command, const char *arg)
 void
 update_command_status(Command *command, bool is_running, pid_t pid)
 {
-    command->is_running = is_running;
-    command->pid        = pid;
+    // command->is_running = is_running;
+    // command->pid        = pid;
 }
 
 

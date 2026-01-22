@@ -20,6 +20,7 @@ get_pipeline_obj(void)
     }
 
     pipeline->command       = NULL;
+    pipeline->gid          = 0;
     pipeline->command_count = 0;
     pipeline->capacity      = 0;
     return pipeline;
@@ -97,7 +98,8 @@ wait_for_pipeline(Pipeline *pipeline)
         /* Find the command with the specified pid and update its status */
         for (int i = 0; i < pipeline->command_count; i++) {
             if (pipeline->command[i]->pid == child_pid) {
-                update_command_status(pipeline->command[i], false, -1);
+                pipeline->command[i]->pid  = 0;
+                pipeline->command[i]->pgid = 0;
                 pipeline->command[i]->return_status = status;
             }
         }
@@ -108,7 +110,7 @@ wait_for_pipeline(Pipeline *pipeline)
 
 
 int
-launch_pipeline(Pipeline *pipeline)
+launch_pipeline(Pipeline *pipeline, bool in_subshell, bool in_foreground)
 {
     int pipefd[2];
     int infile = STDIN_FILENO;
@@ -131,19 +133,31 @@ launch_pipeline(Pipeline *pipeline)
         pid_t pid = fork();
 
         switch (pid) {
-            case 0:
-                /* Child process */
+            case 0: /* child process */
+                if (!in_subshell) {
+                    pid = getpid();
+                    pid_t pgid = pipeline->gid;
+                    if (pgid == 0) {
+                        pgid = pid;
+                    }
+                    setpgid(pid, pgid);
+                }
+
                 launch_command(pipeline->command[i], infile, outfile);
 
-            case -1:
-                /* fork fails */
-                perror("fork");
-                terminate_pipeline(pipeline);
-                return -1;
+            case -1: /* fork fails */
 
-            default:
-                /* parent process */
-                update_command_status(pipeline->command[i], true, pid);
+
+            default: /* parent process */
+                if (!in_subshell) {
+                    if (pipeline->gid == 0) {
+                        pipeline->gid = pid;
+                    }
+                    setpgid(pid, pipeline->gid);
+                }                 
+
+                pipeline->command[i]->pid  = pid;
+                pipeline->command[i]->pgid = pipeline->gid;
         }
     }
 
@@ -151,5 +165,7 @@ launch_pipeline(Pipeline *pipeline)
         terminate_pipeline(pipeline);
         return -1;
     }
+
+    /* return the status of last command in pipeline */
     return pipeline->command[pipeline->command_count - 1]->return_status;
 }

@@ -20,6 +20,7 @@
 typedef struct Pipeline
 {
     Command **command;  /* each process of this array is part of pipeline */
+    pid_t     gid;      /* process group id of the pipeline */
     int       command_count;
     int       capacity;
 } Pipeline;
@@ -29,7 +30,7 @@ Pipeline *get_pipeline_obj(void);
 void destroy_pipeline_obj(Pipeline *pipeline);
 int add_command_to_pipeline(Pipeline *pipeline, Command *command);
 
-int launch_pipeline(Pipeline *pipeline);
+int launch_pipeline(Pipeline *pipeline, bool in_subshell, bool in_foreground);
 
 
 #endif // PIPELINE_H_
