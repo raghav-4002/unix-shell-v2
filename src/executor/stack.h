@@ -14,6 +14,7 @@ typedef struct Stack
 
 int push_node_into_stack(Ast_node *node, Stack **stack);
 Ast_node *pop_node_from_stack(Stack **stack);
+void destroy_stack(Stack **stack);
 
 
 #endif // STACK_H_

@@ -25,7 +25,7 @@ push_node_into_stack(Ast_node *node, Stack **stack)
 Ast_node *
 pop_node_from_stack(Stack **stack)
 {
-    assert(stack != NULL);
+    assert(*stack != NULL);
     Ast_node *ast_node = (*stack)->node;
     Stack *temp = *stack;
 
@@ -33,4 +33,13 @@ pop_node_from_stack(Stack **stack)
     free(temp);
 
     return ast_node;
+}
+
+
+void
+destroy_stack(Stack **stack)
+{
+    while (*stack != NULL) {
+        pop_node_from_stack(stack);
+    }
 }
